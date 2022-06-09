@@ -6,16 +6,14 @@ import { UsersModule } from './users/users.module';
 import { BankModule } from './bank/bank.module';
 import { LoansModule } from './loans/loans.module';
 import { SavingsModule } from './savings/savings.module';
-import { LoanTypeModule } from './loan-type/loan-type.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot("mongodb://localhost:27017/sacco"),
+    MongooseModule.forRoot('mongodb://localhost:27017/sacco'),
     UsersModule,
     BankModule,
     LoansModule,
     SavingsModule,
-    LoanTypeModule
   ],
   controllers: [AppController],
   providers: [AppService],

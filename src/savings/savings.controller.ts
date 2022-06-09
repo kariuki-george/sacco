@@ -21,6 +21,10 @@ export class SavingsController {
   findOne(@Param('id') id: string) {
     return this.savingsService.findOne(+id);
   }
+  @Get('user/:id')
+  findAllByUserId(@Param('id') id: string) {
+    return this.savingsService.findAllByUserId(id);
+  }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSavingDto: UpdateSavingDto) {

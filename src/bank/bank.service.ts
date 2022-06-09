@@ -1,19 +1,27 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateBankDto } from './dto/create-bank.dto';
 import { UpdateBankDto } from './dto/update-bank.dto';
+import { Bank } from './entities/bank.entity';
 
 @Injectable()
 export class BankService {
-  create(createBankDto: CreateBankDto) {
-    return 'This action adds a new bank';
+  constructor(@InjectModel(Bank.name) private bankService: Model<Bank>) {}
+  create(createBankDto: CreateBankDto): Promise<Bank> {
+    const newBank = new this.bankService(createBankDto);
+    return newBank.save();
   }
 
-  findAll() {
-    return `This action returns all bank`;
+  findAll(): Promise<Bank[]> {
+    return this.bankService.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} bank`;
+  findOneWithNameAndDefault(name: string, Default: boolean) {
+    return this.bankService.findOne({
+      name,
+      default: Default,
+    }).exec();
   }
 
   update(id: number, updateBankDto: UpdateBankDto) {
