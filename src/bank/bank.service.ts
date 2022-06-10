@@ -3,17 +3,19 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { BanksProducerService } from 'src/bull/bank.producer.service';
 import { CreateBankDto } from './dto/create-bank.dto';
+import { InWithDrawDto } from './dto/inWithdraw.dto';
 import { UpdateBankDto } from './dto/update-bank.dto';
 import { Bank } from './entities/bank.entity';
 
 @Injectable()
 export class BankService {
-  constructor(@InjectModel(Bank.name) private bankService: Model<Bank>,
-  
-  private readonly banksQueueProducerService:BanksProducerService
+  constructor(
+    @InjectModel(Bank.name) private bankRepo: Model<Bank>,
+
+    private readonly banksQueueProducerService: BanksProducerService,
   ) {}
-  create(createBankDto: CreateBankDto){
-    const newBank = new this.bankService(createBankDto);
+  create(createBankDto: CreateBankDto) {
+    const newBank = new this.bankRepo(createBankDto);
 
     return newBank.save();
   }
@@ -26,30 +28,49 @@ export class BankService {
       default: false,
     };
     try {
-      const bank = await this.create(newBank)
-      return  this.banksQueueProducerService.newSavingsBank(bank._id, id)
-
-
+      const bank = await this.create(newBank);
+      return this.banksQueueProducerService.newSavingsBank(bank._id, id);
     } catch (error) {
-      throw new InternalServerErrorException(error)
+      throw new InternalServerErrorException(error);
+    }
+  }
+  update(id: Types.ObjectId, updateBankDto: UpdateBankDto): Promise<Bank> {
+    return this.bankRepo
+      .findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            ...updateBankDto,
+          },
+          $inc: {
+            amount: updateBankDto.amount,
+          },
+        },
+        {
+          new: true,
+        },
+      )
+      .exec();
+  }
+  outDeposit() {}
+  outWithDraw() {}
+  inDeposit() {}
+  inWithDraw(inWithDraw: InWithDrawDto) {
+    try {
+      return this.banksQueueProducerService.newBankInWithdrawal(inWithDraw);
+    } catch (error) {
+      throw new InternalServerErrorException(error);
     }
   }
 
   findAll(): Promise<Bank[]> {
-    return this.bankService.find().exec();
+    return this.bankRepo.find().exec();
   }
 
-  findOneWithNameAndDefault(name: string, Default: boolean) {
-    return this.bankService
-      .findOne({
-        name,
-        default: Default,
-      })
-      .exec();
-  }
-
-  update(id: number, updateBankDto: UpdateBankDto) {
-    return `This action updates a #${id} bank`;
+  findOneWithTypeAndDefault(type: string, Default: boolean) {
+    return this.bankRepo.findOne({
+      default: true
+    });
   }
 
   remove(id: number) {

@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { User } from '../../users/entities/user.entity';
 
 @Schema()
@@ -10,9 +10,8 @@ export class Bank {
   type: string;
   @Prop()
   amount: number;
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
-  accountId: User;
-
+  @Prop()
+  accountId: Types.ObjectId;
 }
 
 export type BankDocument = Bank & Document;
