@@ -6,9 +6,11 @@ import { UsersModule } from './users/users.module';
 import { BankModule } from './bank/bank.module';
 import { LoansModule } from './loans/loans.module';
 import { SavingsModule } from './savings/savings.module';
+import { BullQueueModule } from './bull/bull.module';
 
 @Module({
   imports: [
+    BullQueueModule,
     MongooseModule.forRoot('mongodb://localhost:27017/sacco'),
     UsersModule,
     BankModule,

@@ -3,10 +3,13 @@ import { BankService } from './bank.service';
 import { BankController } from './bank.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Bank, BankSchema } from './entities/bank.entity';
+import { BanksConsumerService } from './bank.consumer';
+import { BullQueueModule } from 'src/bull/bull.module';
+
 
 @Module({
   controllers: [BankController],
-  providers: [BankService],
+  providers: [BankService, BanksConsumerService],
   imports: [
     MongooseModule.forFeature([
       {
@@ -14,6 +17,7 @@ import { Bank, BankSchema } from './entities/bank.entity';
         schema: BankSchema,
       },
     ]),
+    BullQueueModule
   ],
   exports: [BankService],
 })

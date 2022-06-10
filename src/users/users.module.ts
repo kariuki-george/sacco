@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './entities/user.entity';
 import { SavingsModule } from 'src/savings/savings.module';
 import { BankModule } from 'src/bank/bank.module';
+import { BullQueueModule } from 'src/bull/bull.module';
 
 @Module({
   controllers: [UsersController],
@@ -16,7 +17,7 @@ import { BankModule } from 'src/bank/bank.module';
         schema: UserSchema,
       },
     ]),
-    SavingsModule, BankModule
+    SavingsModule, BankModule, BullQueueModule
   ],
 })
 export class UsersModule {}

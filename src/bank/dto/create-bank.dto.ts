@@ -1,12 +1,12 @@
-import mongoose from "mongoose";
+import {Types} from "mongoose";
 
 export class CreateBankDto {
-        default: boolean;
+        default: boolean | false;
         
         type: string;
         
-        amount: number;
+        amount: number | 0;
         
-        accountId: mongoose.Schema.Types.ObjectId;
+        accountId: Types.ObjectId;
      
 }

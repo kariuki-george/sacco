@@ -1,7 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { SavingsService } from './savings.service';
 import { CreateSavingDto } from './dto/create-saving.dto';
 import { UpdateSavingDto } from './dto/update-saving.dto';
+
+import { Types } from 'mongoose';
 
 @Controller('savings')
 export class SavingsController {
@@ -28,7 +38,7 @@ export class SavingsController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSavingDto: UpdateSavingDto) {
-    return this.savingsService.update(+id, updateSavingDto);
+    return this.savingsService.update(new Types.ObjectId(id), updateSavingDto);
   }
 
   @Delete(':id')

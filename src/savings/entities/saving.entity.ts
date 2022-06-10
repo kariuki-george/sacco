@@ -16,7 +16,7 @@ export class Savings {
     default: false,
   })
   frozen: boolean;
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   userId: User;
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Bank' })
   bankId: Bank;
