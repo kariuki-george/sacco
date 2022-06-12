@@ -1,11 +1,17 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { throws } from 'assert';
 import { Model, Types } from 'mongoose';
 import { BanksProducerService } from 'src/bull/bank.producer.service';
+import { DepositIntoSavingAccountDto } from 'src/savings/dto/deposit-saving.dto';
 import { CreateBankDto } from './dto/create-bank.dto';
 import { InWithDrawDto } from './dto/inWithdraw.dto';
 import { UpdateBankDto } from './dto/update-bank.dto';
-import { Bank } from './entities/bank.entity';
+import { Bank, bankType } from './entities/bank.entity';
 
 @Injectable()
 export class BankService {
@@ -20,57 +26,130 @@ export class BankService {
     return newBank.save();
   }
 
-  async createForNewSavingsEvent(id: Types.ObjectId) {
+  async createSavingsBankAccount(id: Types.ObjectId) {
     const newBank: CreateBankDto = {
       accountId: id,
       amount: 0,
-      type: 'savings',
+      type: bankType.SAVINGS,
       default: false,
     };
     try {
       const bank = await this.create(newBank);
-      return this.banksQueueProducerService.newSavingsBank(bank._id, id);
+      return bank;
     } catch (error) {
       throw new InternalServerErrorException(error);
     }
   }
-  update(id: Types.ObjectId, updateBankDto: UpdateBankDto): Promise<Bank> {
-    return this.bankRepo
-      .findByIdAndUpdate(
-        id,
+  async createEscrow(id: Types.ObjectId) {
+    return await this.create({
+      accountId: id,
+      amount: 0,
+      default: false,
+      type: bankType.ESCROW,
+    });
+  }
+
+  async createSaccoSavingBankAccount(id: Types.ObjectId) {
+    return await this.create({
+      accountId: id,
+      amount: 0,
+      default: true,
+      type: bankType.DEFAULT_SAVINGS,
+    });
+  }
+
+  async createNormalSavingBankAccount(id: Types.ObjectId) {
+    return await this.create({
+      accountId: id,
+      amount: 0,
+      default: false,
+      type: bankType.SAVINGS,
+    });
+  }
+
+  async withdraw(inWithDraw: InWithDrawDto) {
+    try {
+      //Get escrow and check if current amount is enough for any withdraw
+      const bank = await this.bankRepo.findOne({
+        accountId: inWithDraw.userId,
+        type: bankType.ESCROW,
+      });
+
+      if (bank.amount < inWithDraw.amount) {
+        throw new BadRequestException(
+          `Your Escrow account is less than ${inWithDraw.amount}`,
+        );
+      }
+
+      //If amount is enough, update the escrow bank account
+      return this.bankRepo.findByIdAndUpdate(bank._id, {
+        $set: {
+          amount: bank.amount - inWithDraw.amount,
+        },
+      });
+    } catch (error) {
+      if (error.response.status === 400) {
+        throw new BadRequestException(error.response.message);
+      }
+
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  async depositIntoSaccoBankAccount(
+    depositIntoSaccoBankAccount: DepositIntoSavingAccountDto,
+  ) {
+    //get saccoBank, deposit then return the bank
+
+    try {
+      const bank = await this.bankRepo.findOneAndUpdate(
         {
-          $set: {
-            ...updateBankDto,
-          },
+          type: bankType.DEFAULT_SAVINGS,
+          default: true,
+        },
+        {
           $inc: {
-            amount: updateBankDto.amount,
+            amount: depositIntoSaccoBankAccount.amount,
           },
         },
-        {
-          new: true,
-        },
-      )
-      .exec();
+      );
+      return bank;
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
   }
   outDeposit() {}
   outWithDraw() {}
   inDeposit() {}
-  inWithDraw(inWithDraw: InWithDrawDto) {
+  async inWithDraw(inWithDraw: InWithDrawDto) {
     try {
-      return this.banksQueueProducerService.newBankInWithdrawal(inWithDraw);
+      const res = await this.withdraw(inWithDraw);
+
+      //update the savings bankAccount
+      const updatedSavings = await this.bankRepo.findByIdAndUpdate(
+        inWithDraw.bankId,
+        {
+          $inc: {
+            amount: inWithDraw.amount,
+          },
+        },
+      );
+
+      return updatedSavings;
     } catch (error) {
+      if (error.response.status === 400) {
+        throw new BadRequestException(error.response.message);
+      }
       throw new InternalServerErrorException(error);
     }
   }
 
-  findAll(): Promise<Bank[]> {
-    return this.bankRepo.find().exec();
+  async findEscrow(id: Types.ObjectId) {
+    return this.bankRepo.findOne({ accountId: id }).exec();
   }
 
-  findOneWithTypeAndDefault(type: string, Default: boolean) {
-    return this.bankRepo.findOne({
-      default: true
-    });
+  findAll(): Promise<Bank[]> {
+    return this.bankRepo.find().exec();
   }
 
   remove(id: number) {

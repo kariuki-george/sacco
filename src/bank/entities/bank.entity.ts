@@ -1,17 +1,22 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Types } from 'mongoose';
-import { User } from '../../users/entities/user.entity';
+import mongoose from 'mongoose';
+
+export enum bankType {
+  SAVINGS = 'SAVINGS',
+  ESCROW = 'ESCROW',
+  DEFAULT_SAVINGS = 'DEFAULT_SAVINGS',
+}
 
 @Schema()
 export class Bank {
   @Prop({ type: Boolean, default: false })
   default: boolean;
   @Prop()
-  type: string;
+  type: bankType;
   @Prop()
   amount: number;
   @Prop()
-  accountId: Types.ObjectId;
+  accountId: mongoose.Schema.Types.ObjectId;
 }
 
 export type BankDocument = Bank & Document;

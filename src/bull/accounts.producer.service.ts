@@ -8,13 +8,21 @@ export class AccountsProducerService {
   constructor(@InjectQueue('accounts') private accountsQueue: Queue) {}
 
   async accountCreate(id: Types.ObjectId) {
-   
     try {
-      await this.accountsQueue.add('account-created', {
+      const EscrowBankAccount = await this.accountsQueue.add(
+        'account-created-CreateEscrow',
+        {
+          id,
+        },
+      );
+      const savingsAccount = await this.accountsQueue.add('account-created', {
         id,
       });
 
-      return id;
+      return {
+        EscrowBankAccount,
+        savingsAccount,
+      };
     } catch (error) {
       throw new InternalServerErrorException(error);
     }

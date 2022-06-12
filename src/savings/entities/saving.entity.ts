@@ -1,12 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Types } from 'mongoose';
-import { Bank } from '../../bank/entities/bank.entity';
 import { User } from '../../users/entities/user.entity';
+
+export enum savingsType {
+  USER_SAVINGS = 'USER_SAVINGS',
+  SACCO_SAVINGS = 'SACCO_SAVINGS',
+}
 
 @Schema()
 export class Savings {
   @Prop()
   name: string;
+  @Prop()
+  type: savingsType;
   @Prop()
   amountSaved: number;
   @Prop()
@@ -20,7 +26,6 @@ export class Savings {
   userId: User;
   @Prop()
   bankId: Types.ObjectId;
- 
 }
 
 export type SavingsDocument = Savings & Document;

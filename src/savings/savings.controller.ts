@@ -13,6 +13,7 @@ import { UpdateSavingDto } from './dto/update-saving.dto';
 
 import { Types } from 'mongoose';
 import { DepositIntoSavingAccountDto } from './dto/deposit-saving.dto';
+import { CreateNormalSavingDto } from './dto/createNormalSaving.dto';
 
 @Controller('savings')
 export class SavingsController {
@@ -44,6 +45,21 @@ export class SavingsController {
       userId: new Types.ObjectId(depositIntoSavingAccountDto.userId),
       savingsId: new Types.ObjectId(depositIntoSavingAccountDto.savingsId),
     });
+  }
+
+  @Post("save/sacco")
+  saveSacco(@Body() depositIntoSavingAccountDto: DepositIntoSavingAccountDto) {
+    return this.savingsService.depositIntoSaccoSavingAccount({
+      ...depositIntoSavingAccountDto,
+      userId: new Types.ObjectId(depositIntoSavingAccountDto.userId),
+      savingsId: new Types.ObjectId(depositIntoSavingAccountDto.savingsId),
+    });
+  }
+
+
+  @Post('createNormal')
+  createNormal(@Body() createNormalSaving: CreateNormalSavingDto) {
+    return this.savingsService.createNormalSavingsAccount(createNormalSaving);
   }
 
   @Patch(':id')

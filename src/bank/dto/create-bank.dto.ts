@@ -1,9 +1,12 @@
 import { Types } from 'mongoose';
+import { bankType } from '../entities/bank.entity';
+
+
 
 export class CreateBankDto {
   default: boolean | false;
 
-  type: string;
+  type: bankType;
 
   amount: number | 0;
 

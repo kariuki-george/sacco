@@ -7,10 +7,23 @@ import { DepositIntoSavingAccountDto } from 'src/savings/dto/deposit-saving.dto'
 @Injectable()
 export class SavingsProducerService {
   constructor(@InjectQueue('savings') private savingsQueue: Queue) {}
-  async savingCreate(id: Types.ObjectId) {
+  async createDefaultSavingAccount(id: Types.ObjectId) {
     try {
-      await this.savingsQueue.add('saving-created', { id });
-      return id;
+      return this.savingsQueue.add('saving-creation', { id });
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+  async createSaccoSavingAccount(id: Types.ObjectId) {
+    try {
+      return this.savingsQueue.add('saving-createSaccoSaving', { id });
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+  async createNormalSavingAccount(id: Types.ObjectId) {
+    try {
+      return this.savingsQueue.add('saving-createNormalSaving', { id });
     } catch (error) {
       throw new InternalServerErrorException(error);
     }
@@ -19,24 +32,18 @@ export class SavingsProducerService {
   async depositIntoSavingAccount(
     depositIntoSavingAccountDto: DepositIntoSavingAccountDto,
   ) {
-    try {
-      
-      await this.savingsQueue.add('saving-depositIntoSavingsAccountInitiated', {
-        ...depositIntoSavingAccountDto
-      });
-    } catch (error) {
-      throw new InternalServerErrorException(error);
-    }
+    return await this.savingsQueue.add(
+      'saving-depositIntoSavingsAccount',
+      {
+        ...depositIntoSavingAccountDto,
+      },
+    );
   }
-  async depositIntoSavingAccountComplete(
-    depositIntoSavingAccountDto: DepositIntoSavingAccountDto,
-  ) {
-    try {
-      await this.savingsQueue.add('saving-depositIntoSavingsAccountCompleted', {
-        depositIntoSavingAccountDto,
-      });
-    } catch (error) {
-      throw new InternalServerErrorException(error);
-    }
+
+  async depositIntoSaccoSavingAccount(depositIntoSaccoSavingAccount:DepositIntoSavingAccountDto){
+    return this.savingsQueue.add("savings-depositIntoSaccoSavingsAccount",{
+      ...depositIntoSaccoSavingAccount
+    })
   }
+  
 }

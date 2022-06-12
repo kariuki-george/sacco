@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { AccountsProducerService } from 'src/bull/accounts.producer.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,20 +10,16 @@ import { User } from './entities/user.entity';
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userService: Model<User>,
-  
+
     private readonly accountsQueueProducerService: AccountsProducerService,
   ) {}
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       const newUser = new this.userService(createUserDto);
       const user = await newUser.save();
-      
-      await this.accountsQueueProducerService.accountCreate(user._id);
+      await this.accountsQueueProducerService.accountCreate(new Types.ObjectId(user._id));
       return user;
-
-      
     } catch (error) {
-     
       throw new InternalServerErrorException(error);
     }
   }
