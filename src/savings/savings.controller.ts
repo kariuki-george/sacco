@@ -47,7 +47,7 @@ export class SavingsController {
     });
   }
 
-  @Post("save/sacco")
+  @Post('save/sacco')
   saveSacco(@Body() depositIntoSavingAccountDto: DepositIntoSavingAccountDto) {
     return this.savingsService.depositIntoSaccoSavingAccount({
       ...depositIntoSavingAccountDto,
@@ -56,6 +56,12 @@ export class SavingsController {
     });
   }
 
+  @Post('createSacco')
+  createSacco(@Body() id: string) {
+    return this.savingsService.createSaccoSavingsAccount(
+      new Types.ObjectId(id),
+    );
+  }
 
   @Post('createNormal')
   createNormal(@Body() createNormalSaving: CreateNormalSavingDto) {

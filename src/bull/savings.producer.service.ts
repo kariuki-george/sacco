@@ -32,18 +32,16 @@ export class SavingsProducerService {
   async depositIntoSavingAccount(
     depositIntoSavingAccountDto: DepositIntoSavingAccountDto,
   ) {
-    return await this.savingsQueue.add(
-      'saving-depositIntoSavingsAccount',
-      {
-        ...depositIntoSavingAccountDto,
-      },
-    );
+    return await this.savingsQueue.add('saving-depositIntoSavingsAccount', {
+      ...depositIntoSavingAccountDto,
+    });
   }
 
-  async depositIntoSaccoSavingAccount(depositIntoSaccoSavingAccount:DepositIntoSavingAccountDto){
-    return this.savingsQueue.add("savings-depositIntoSaccoSavingsAccount",{
-      ...depositIntoSaccoSavingAccount
-    })
+  async depositIntoSaccoSavingAccount(
+    depositIntoSaccoSavingAccount: DepositIntoSavingAccountDto,
+  ) {
+    return this.savingsQueue.add('saving-depositIntoSaccoSavingsAccount', {
+      ...depositIntoSaccoSavingAccount,
+    });
   }
-  
 }

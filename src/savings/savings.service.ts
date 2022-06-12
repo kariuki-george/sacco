@@ -104,6 +104,7 @@ export class SavingsService {
           depositIntoSavingAccountDto,
         );
       const res = await saccoBank.finished();
+
       await this.savingsRepo.findOneAndUpdate(
         { bankId: res._id },
         {
