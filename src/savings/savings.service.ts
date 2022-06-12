@@ -4,8 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model, Types } from 'mongoose';
-import { BankService } from 'src/bank/bank.service';
+import { Model, Types } from 'mongoose';
 import { SavingsProducerService } from 'src/bull/savings.producer.service';
 import { CreateSavingDto } from './dto/create-saving.dto';
 import { CreateNormalSavingDto } from './dto/createNormalSaving.dto';

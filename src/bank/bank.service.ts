@@ -4,13 +4,10 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { throws } from 'assert';
 import { Model, Types } from 'mongoose';
-import { BanksProducerService } from 'src/bull/bank.producer.service';
 import { DepositIntoSavingAccountDto } from 'src/savings/dto/deposit-saving.dto';
 import { CreateBankDto } from './dto/create-bank.dto';
 import { InWithDrawDto } from './dto/inWithdraw.dto';
-import { UpdateBankDto } from './dto/update-bank.dto';
 import { Bank, bankType } from './entities/bank.entity';
 
 @Injectable()
@@ -18,7 +15,6 @@ export class BankService {
   constructor(
     @InjectModel(Bank.name) private bankRepo: Model<Bank>,
 
-    private readonly banksQueueProducerService: BanksProducerService,
   ) {}
   create(createBankDto: CreateBankDto) {
     const newBank = new this.bankRepo(createBankDto);
