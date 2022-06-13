@@ -5,7 +5,7 @@ WORKDIR /var/www/sacco-backend
 
 COPY package.json .
 
-RUN npm i --force
+RUN yarn
 
 COPY . .
 
@@ -13,8 +13,8 @@ COPY .env.docker ./.env
 
 EXPOSE 3000
 
-RUN npm run build
+RUN yarn build
 
-CMD npm run start
+CMD yarn start
 
 
