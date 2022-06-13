@@ -5,7 +5,7 @@ WORKDIR /var/www/sacco-backend
 
 COPY package.json .
 
-RUN npm i
+RUN npm i --force
 
 COPY . .
 
