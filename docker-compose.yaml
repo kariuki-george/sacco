@@ -1,20 +1,17 @@
 version: '3'
 services:
-    saccoBackend:
-        container_name: saccoBackend
-        restart: always
-        build: .
-        ports:
-            - "3000:3000"
-        links:
-            - redis
-            - mongo
-    mongo:
-        container_name: mongodb
-        image: 'mongo:latest'
-    redis:
-        container_name: redis
-        image: "redis:alpine"
-
-
-        
+  saccobackend:
+    container_name: saccobackend
+    restart: always
+    build: .
+    ports:
+      - '3000:3000'
+    links:
+      - redis
+      - mongo
+  mongo:
+    container_name: mongodb
+    image: 'mongo:latest'
+  redis:
+    container_name: redis
+    image: 'redis:alpine'

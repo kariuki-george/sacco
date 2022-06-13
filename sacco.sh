@@ -12,9 +12,9 @@ if [ "$#" -eq 0 ] || [ $1 = "-h" ] || [ $1 = "--help" ]; then
     echo "  -h, --help    Prints usage."
     echo ""
     echo "Commands:"
-    echo "  $CLEAN      - Stop and Remove imoney containers."
-    echo "  $RUN        - Build and Run imoney."
-    echo "  $STOP       - Stop imoney."
+    echo "  $CLEAN      - Stop and Remove sacco containers."
+    echo "  $RUN        - Build and Run sacco."
+    echo "  $STOP       - Stop sacco."
     exit
 fi
 
