@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { BankService } from './bank.service';
-import { BankController } from './bank.controller';
+import { BankResolver } from './bank.resolver';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Bank, BankSchema } from './entities/bank.entity';
 import { BullQueueModule } from 'src/bull/bull.module';
@@ -8,8 +8,8 @@ import { SavingsConsumerService } from './consumers/savings.consumer';
 import { AccountsConsumerService } from './consumers/accounts.savings';
 
 @Module({
-  controllers: [BankController],
-  providers: [BankService, SavingsConsumerService, AccountsConsumerService],
+
+  providers: [BankResolver,BankService, SavingsConsumerService, AccountsConsumerService],
   imports: [
     MongooseModule.forFeature([
       {

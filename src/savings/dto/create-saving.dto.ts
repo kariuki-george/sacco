@@ -12,4 +12,5 @@ export class CreateSavingDto {
 
   userId: Types.ObjectId;
   bankId: Types.ObjectId | null;
+  default?: boolean;
 }

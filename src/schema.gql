@@ -1,0 +1,77 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type User {
+  _id: String!
+  firstName: String!
+  lastName: String!
+  email: String!
+}
+
+type Savings {
+  _id: ID!
+  name: String!
+  type: String!
+  amountSaved: Int!
+  amountAimed: Int!
+  frozen: Boolean!
+  userId: ID!
+}
+
+type Bank {
+  default: Boolean!
+  type: String!
+  amount: Int!
+  accountId: ID!
+}
+
+type LoginResponse {
+  user: User!
+  accessToken: String!
+}
+
+type Query {
+  getHello: String!
+  getAllUsers: [User!]!
+  getAllSavings: [Savings!]!
+  findOne(id: String!): Savings!
+  getTotalSaving: Int!
+  getSavingsByUserId(id: String!): [Savings!]!
+  getEscrow(userId: String!): Bank!
+}
+
+type Mutation {
+  createUser(createUserDto: CreateUserDto!): User!
+  createAdmin(createAdminDto: CreateUserDto!): User!
+  saveToCustomUserAccount(depositIntoSavingAccountDto: DepositIntoSavingAccountDto!): Savings!
+  saveToSaccoAccount(depositIntoSavingAccountDto: DepositIntoSavingAccountDto!): Savings!
+  createSacco(id: String!): Savings!
+  createNormalSavingsAccount(createNormalSaving: CreateNormalSavingDto!): Savings!
+  login(loginDto: LoginDto!): LoginResponse!
+}
+
+input CreateUserDto {
+  firstName: String!
+  lastName: String!
+  email: String!
+  password: String!
+}
+
+input DepositIntoSavingAccountDto {
+  userId: ID!
+  amount: Int!
+  savingsId: ID!
+  bankId: ID
+}
+
+input CreateNormalSavingDto {
+  userId: ID!
+  amountAimed: Int!
+  name: String!
+}
+
+input LoginDto {
+  email: String!
+  password: String!
+}

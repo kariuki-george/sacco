@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { SavingsService } from './savings.service';
-import { SavingsController } from './savings.controller';
+import { SavingsResolver } from './savings.resolver';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Savings, SavingsSchema } from './entities/saving.entity';
 
@@ -10,8 +10,8 @@ import { SavingsConsumerService } from './consumers/savings.consumer';
 import { AccountsSavingsConsumerService } from './consumers/account.consumer';
 
 @Module({
-  controllers: [SavingsController],
-  providers: [SavingsService, SavingsConsumerService, AccountsSavingsConsumerService],
+ 
+  providers: [SavingsResolver,SavingsService, SavingsConsumerService, AccountsSavingsConsumerService],
   imports: [
     MongooseModule.forFeature([
       {

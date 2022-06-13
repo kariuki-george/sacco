@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UsersController } from './users.controller';
+import { UsersResolver } from './users.resolver';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './entities/user.entity';
 import { SavingsModule } from 'src/savings/savings.module';
@@ -8,8 +8,8 @@ import { BankModule } from 'src/bank/bank.module';
 import { BullQueueModule } from 'src/bull/bull.module';
 
 @Module({
-  controllers: [UsersController],
-  providers: [UsersService],
+ 
+  providers: [UsersService, UsersResolver],
   imports: [
     MongooseModule.forFeature([
       {
@@ -19,5 +19,8 @@ import { BullQueueModule } from 'src/bull/bull.module';
     ]),
     SavingsModule, BankModule, BullQueueModule
   ],
+  exports:[
+    UsersService
+  ]
 })
 export class UsersModule {}

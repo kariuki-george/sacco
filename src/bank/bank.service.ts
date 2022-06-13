@@ -12,10 +12,7 @@ import { Bank, bankType } from './entities/bank.entity';
 
 @Injectable()
 export class BankService {
-  constructor(
-    @InjectModel(Bank.name) private bankRepo: Model<Bank>,
-
-  ) {}
+  constructor(@InjectModel(Bank.name) private bankRepo: Model<Bank>) {}
   create(createBankDto: CreateBankDto) {
     const newBank = new this.bankRepo(createBankDto);
 
@@ -140,8 +137,10 @@ export class BankService {
     }
   }
 
-  async findEscrow(id: Types.ObjectId) {
-    return this.bankRepo.findOne({ accountId: id }).exec();
+  findEscrow(id: Types.ObjectId): Promise<Bank> {
+    return this.bankRepo
+      .findOne({ accountId: id, type: bankType.ESCROW })
+      .exec();
   }
 
   findAll(): Promise<Bank[]> {

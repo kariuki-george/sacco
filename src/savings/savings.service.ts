@@ -32,12 +32,13 @@ export class SavingsService {
     const bank = await res.finished();
     const createSavingDto: CreateSavingDto = {
       amountSaved: 0,
-      name: 'SACCO_SAVINGS',
+      name: savingsType.SACCO_SAVINGS,
       type: savingsType.SACCO_SAVINGS,
       userId: id,
       amountAimed: 0,
       bankId: bank._id,
       frozen: false,
+      default: true,
     };
     return await this.create(createSavingDto);
   }
@@ -49,7 +50,7 @@ export class SavingsService {
     const bank = await res.finished();
     const createSavingDto: CreateSavingDto = {
       amountSaved: 0,
-      name: 'SACCO_SAVINGS',
+      name: savingsType.SACCO_SAVINGS,
       type: savingsType.SACCO_SAVINGS,
       userId: id,
       amountAimed: 0,
@@ -78,12 +79,17 @@ export class SavingsService {
     return await this.create(createSavingDto);
   }
 
+  async findTotalSavings(): Promise<Number> {
+    const bank = await this.savingsRepo.findOne({name: savingsType.SACCO_SAVINGS, default:true})
+    return  bank.amountSaved;
+  }
+
   findAll(): Promise<Savings[]> {
     return this.savingsRepo.find().exec();
   }
 
-  findOne(id: Types.ObjectId) {
-    return this.savingsRepo.findById(id);
+  findOne(id: Types.ObjectId):Promise<Savings> {
+    return this.savingsRepo.findById(id).exec();
   }
   findAllByUserId(id: Types.ObjectId): Promise<Savings[]> {
     return this.savingsRepo.find({ userId: id }).exec();

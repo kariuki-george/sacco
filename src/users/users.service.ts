@@ -4,7 +4,7 @@ import { Model, Types } from 'mongoose';
 import { AccountsProducerService } from 'src/bull/accounts.producer.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
+import { User, userRole } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -17,7 +17,9 @@ export class UsersService {
     try {
       const newUser = new this.userService(createUserDto);
       const user = await newUser.save();
-      await this.accountsQueueProducerService.accountCreate(new Types.ObjectId(user._id));
+      await this.accountsQueueProducerService.accountCreate(
+        new Types.ObjectId(user._id),
+      );
       return user;
     } catch (error) {
       throw new InternalServerErrorException(error);
@@ -25,7 +27,7 @@ export class UsersService {
   }
 
   async createAdmin(createUserDto: CreateUserDto): Promise<User> {
-    const newUser = new this.userService(createUserDto);
+    const newUser = new this.userService({...createUserDto, role:userRole.ADMIN});
 
     return newUser.save();
   }
@@ -33,8 +35,11 @@ export class UsersService {
   findAll(): Promise<User[]> {
     return this.userService.find().exec();
   }
+  findUserByEmail(email: string): Promise<User | null> {
+    return this.userService.findOne({ email }).exec();
+  }
 
-  findOne(id: number) {
+  findOne(id:number) {
     return `This action returns a #${id} user`;
   }
 
