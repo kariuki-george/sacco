@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriverConfig, ApolloDriver } from '@nestjs/apollo';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import {join} from "path"
 
 @Module({
   imports: [
@@ -21,7 +22,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        
         uri: configService.get<String>('MONGODB_URI'),
       }),
       inject: [ConfigService],
@@ -34,8 +34,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       playground: true,
-      autoSchemaFile: 'src/schema.gql',
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       introspection: true,
+
       context: ({ req, res }) => ({ req, res }),
     }),
   ],
