@@ -16,11 +16,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         redis: {
-          host: configService.get('REDIS_HOST'),
-          port: +configService.get('REDIS_PORT'),
-          password: configService.get('REDIS_PASSWORD'),
+          path: configService.get('REDIS_PATH'),
+          // host: configService.get('REDIS_HOST'),
+          // port: Number(+configService.get('REDIS_PORT')),
+          // password: configService.get('REDIS_PASSWORD'),
         },
-        
       }),
       inject: [ConfigService],
     }),
