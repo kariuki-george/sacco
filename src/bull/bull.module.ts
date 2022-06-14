@@ -3,6 +3,7 @@ import { BullModule } from '@nestjs/bull';
 import { AccountsProducerService } from './accounts.producer.service';
 import { SavingsProducerService } from './savings.producer.service';
 import { BanksProducerService } from './bank.producer.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   providers: [
@@ -11,11 +12,17 @@ import { BanksProducerService } from './bank.producer.service';
     BanksProducerService,
   ],
   imports: [
-    BullModule.forRoot({
-      redis: {
-        host: 'localhost',
-        port: 6379,
-      },
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        redis: {
+          host: configService.get('REDIS_HOST'),
+          port: +configService.get('REDIS_PORT'),
+          password: configService.get('REDIS_PASSWORD'),
+        },
+        
+      }),
+      inject: [ConfigService],
     }),
     BullModule.registerQueue(
       {

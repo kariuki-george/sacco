@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User, userRole } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { LoginResponse } from './res/login.res';
+import * as argon from 'argon2';
 
 @Injectable()
 export class AuthService {
@@ -16,21 +17,19 @@ export class AuthService {
     if (!user) {
       return null;
     }
-    if (user.password === password) {
+
+    const unhash = await argon.verify(user.password, password);
+    if (unhash) {
       return user;
     }
     return null;
   }
   login(user: User): LoginResponse {
-    
     const payload = {
       email: user.email,
     };
 
-    
-    
-
-    return { user, accessToken: this.jwtService.sign(payload)};
+    return { user, accessToken: this.jwtService.sign(payload) };
   }
 
   async verify(token: string): Promise<User> {

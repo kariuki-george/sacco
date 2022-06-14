@@ -1,10 +1,15 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { AccountsProducerService } from 'src/bull/accounts.producer.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, userRole } from './entities/user.entity';
+import * as argon from 'argon2';
 
 @Injectable()
 export class UsersService {
@@ -14,22 +19,40 @@ export class UsersService {
     private readonly accountsQueueProducerService: AccountsProducerService,
   ) {}
   async create(createUserDto: CreateUserDto): Promise<User> {
+    const { password } = createUserDto;
+    const hash = await argon.hash(password);
+
     try {
-      const newUser = new this.userService(createUserDto);
+      const newUser = new this.userService({
+        ...createUserDto,
+        password: hash,
+      });
       const user = await newUser.save();
       await this.accountsQueueProducerService.accountCreate(
         new Types.ObjectId(user._id),
       );
       return user;
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      throw new BadRequestException(error.message);
     }
   }
 
   async createAdmin(createUserDto: CreateUserDto): Promise<User> {
-    const newUser = new this.userService({...createUserDto, role:userRole.ADMIN});
+    try {
+      const { password } = createUserDto;
+      const hash = await argon.hash(password);
 
-    return newUser.save();
+      const newUser = new this.userService({
+        ...createUserDto,
+        password: hash,
+        role: userRole.ADMIN,
+      });
+
+      const user = await newUser.save();
+      return user;
+    } catch (err) {
+      throw new BadRequestException(err.message);
+    }
   }
 
   findAll(): Promise<User[]> {
@@ -39,7 +62,7 @@ export class UsersService {
     return this.userService.findOne({ email }).exec();
   }
 
-  findOne(id:number) {
+  findOne(id: number) {
     return `This action returns a #${id} user`;
   }
 

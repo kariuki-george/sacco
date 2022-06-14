@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import {  AppResolver } from './app.resolver';
+import { AppResolver } from './app.resolver';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { BankModule } from './bank/bank.module';
@@ -10,11 +10,22 @@ import { BullQueueModule } from './bull/bull.module';
 import { AuthModule } from './auth/auth.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriverConfig, ApolloDriver } from '@nestjs/apollo';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     BullQueueModule,
-    MongooseModule.forRoot('mongodb://localhost:27017/sacco'),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        
+        uri: configService.get<String>('MONGODB_URI'),
+      }),
+      inject: [ConfigService],
+    }),
     UsersModule,
     BankModule,
     LoansModule,
@@ -24,6 +35,7 @@ import { ApolloDriverConfig, ApolloDriver } from '@nestjs/apollo';
       driver: ApolloDriver,
       playground: true,
       autoSchemaFile: 'src/schema.gql',
+      introspection: true,
       context: ({ req, res }) => ({ req, res }),
     }),
   ],

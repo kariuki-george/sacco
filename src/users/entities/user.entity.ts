@@ -1,11 +1,10 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import  { Types,Document } from 'mongoose';
-
+import { Types, Document } from 'mongoose';
 
 export enum userRole {
-    ADMIN="ADMIN",
-    MEMBER="MEMBER"
+  ADMIN = 'ADMIN',
+  MEMBER = 'MEMBER',
 }
 
 @ObjectType()
@@ -20,12 +19,12 @@ export class User {
   @Prop()
   lastName: string;
   @Field(() => String)
-  @Prop()
+  @Prop({ unique: true })
   email: string;
   @Prop({ nullable: true })
   password?: string;
-  @Prop({ nullable: true, default:userRole.MEMBER })
-  role?:userRole
+  @Prop({ nullable: true, default: userRole.MEMBER })
+  role?: userRole;
 }
 
 export type UserDocument = User & Document;
