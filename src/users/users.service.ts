@@ -55,6 +55,11 @@ export class UsersService {
     }
   }
 
+  async getUsersTotal(): Promise<number> {
+    const users = await this.userService.countDocuments({}).exec();
+    return users - 1;
+  }
+
   findAll(): Promise<User[]> {
     return this.userService.find().exec();
   }
