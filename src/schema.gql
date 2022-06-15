@@ -26,6 +26,18 @@ type Bank {
   accountId: ID!
 }
 
+type Transaction {
+  type: String!
+  amount: Int!
+  from: String!
+  to: String!
+  toId: ID!
+  fromId: ID!
+  status: String!
+  requestId: String!
+  userId: ID!
+}
+
 type LoginResponse {
   user: User!
   accessToken: String!
@@ -33,12 +45,14 @@ type LoginResponse {
 
 type Query {
   getHello: String!
+  getUsersTotal: Int!
   getAllUsers: [User!]!
   getAllSavings: [Savings!]!
   findOne(id: String!): Savings!
   getTotalSaving: Int!
   getSavingsByUserId(id: String!): [Savings!]!
   getEscrow(userId: String!): Bank!
+  getUserTransactions(userId: String!): [Transaction!]!
 }
 
 type Mutation {
@@ -48,6 +62,7 @@ type Mutation {
   saveToSaccoAccount(depositIntoSavingAccountDto: DepositIntoSavingAccountDto!): Savings!
   createSacco(id: String!): Savings!
   createNormalSavingsAccount(createNormalSaving: CreateNormalSavingDto!): Savings!
+  outDeposit(outDeposit: DepositDto!): Bank!
   login(loginDto: LoginDto!): LoginResponse!
 }
 
@@ -69,6 +84,12 @@ input CreateNormalSavingDto {
   userId: ID!
   amountAimed: Int!
   name: String!
+}
+
+input DepositDto {
+  amount: Int!
+  userId: ID!
+  phoneNumber: Int
 }
 
 input LoginDto {

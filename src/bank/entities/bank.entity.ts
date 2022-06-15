@@ -6,6 +6,7 @@ export enum bankType {
   SAVINGS = 'SAVINGS',
   ESCROW = 'ESCROW',
   DEFAULT_SAVINGS = 'DEFAULT_SAVINGS',
+  MPESA = 'MPESA',
 }
 
 @Schema()
@@ -23,6 +24,8 @@ export class Bank {
   @Field(() => ID)
   @Prop()
   accountId: mongoose.Schema.Types.ObjectId;
+
+  
 }
 
 export type BankDocument = Bank & Document;

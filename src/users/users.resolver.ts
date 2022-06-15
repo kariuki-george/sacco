@@ -1,9 +1,10 @@
 import {  UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { User } from './entities/user.entity';
 import { AdminAuthGuard } from 'src/auth/guards/admin-guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Resolver()
 export class UsersResolver {
@@ -19,6 +20,14 @@ export class UsersResolver {
   createAdmin(@Args('createAdminDto') createAdminDto: CreateUserDto) {
     return this.usersService.createAdmin(createAdminDto);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Query(()=>Int)
+  getUsersTotal():Promise<number>{
+    return this.usersService.getUsersTotal()
+  }
+
+
 
   @UseGuards(AdminAuthGuard)
   @Query(() => [User])
