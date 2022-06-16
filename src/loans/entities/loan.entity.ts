@@ -1,21 +1,32 @@
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Types } from 'mongoose';
-import { User } from '../../users/entities/user.entity';
+import { Types } from 'mongoose';
 
-@Schema()
+@ObjectType()
+@Schema({ timestamps: true })
 export class Loan {
   @Prop()
+  @Field(() => Int)
   amount: number;
   @Prop()
+  @Field(() => Int)
   amountPaid: number;
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
-  userId: User;
+  @Field(() => ID)
+  @Prop()
+  userId: Types.ObjectId;
+  @Field(() => ID)
   @Prop()
   loanTypeId: Types.ObjectId;
+  @Field(() => Boolean)
   @Prop({ default: false })
   guarantor: boolean;
+
+  @Prop({ default: false })
+  @Field(() => Boolean)
+  processing: boolean;
   @Prop()
-  guarantorId?: Types.ObjectId;
+  @Field(() => ID)
+  _id: Types.ObjectId;
 }
 
 export type LoanDocument = Loan & Document;

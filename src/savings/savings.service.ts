@@ -180,7 +180,9 @@ export class SavingsService {
 
   validateGuarantor(id: Types.ObjectId): Promise<Savings> {
     return this.savingsRepo
-      .findOne({ userId: id, type: savingsType.SACCO_SAVINGS, default: false })
+      .findOne({
+        where: { userId: id, type: savingsType.SACCO_SAVINGS, default: false },
+      })
       .exec();
   }
 }

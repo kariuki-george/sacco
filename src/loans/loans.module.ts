@@ -11,6 +11,7 @@ import { BullQueueModule } from 'src/bull/bull.module';
   providers: [LoansService, LoansResolver],
   imports: [
     BullQueueModule,
+
     MongooseModule.forFeature([
       {
         name: Loan.name,

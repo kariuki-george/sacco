@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppResolver } from './app.resolver';
 import { AppService } from './app.service';
@@ -11,7 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriverConfig, ApolloDriver } from '@nestjs/apollo';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import {join} from "path"
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -38,6 +38,9 @@ import {join} from "path"
       introspection: true,
 
       context: ({ req, res }) => ({ req, res }),
+    }),
+    CacheModule.register({
+      isGlobal:true
     }),
   ],
 

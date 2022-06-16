@@ -9,7 +9,7 @@ export class Guarantor {
   @Field(() => Int)
   amount: number;
   @Field(() => String)
-  @Prop({ expires: 300 })
+  @Prop()
   token: string;
   @Field(() => ID)
   @Prop()

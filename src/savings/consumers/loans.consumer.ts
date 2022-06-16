@@ -15,6 +15,7 @@ export class LoansConsumerService {
   @Process('guarantor-createCheck')
   async guarantorCreateChecks(job: Job<T>): Promise<Savings> {
     const { id } = job.data;
+    
 
     return this.savingsService.validateGuarantor(id);
   }
