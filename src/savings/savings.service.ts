@@ -80,15 +80,18 @@ export class SavingsService {
   }
 
   async findTotalSavings(): Promise<Number> {
-    const bank = await this.savingsRepo.findOne({name: savingsType.SACCO_SAVINGS, default:true})
-    return  bank.amountSaved;
+    const bank = await this.savingsRepo.findOne({
+      name: savingsType.SACCO_SAVINGS,
+      default: true,
+    });
+    return bank.amountSaved;
   }
 
   findAll(): Promise<Savings[]> {
     return this.savingsRepo.find().exec();
   }
 
-  findOne(id: Types.ObjectId):Promise<Savings> {
+  findOne(id: Types.ObjectId): Promise<Savings> {
     return this.savingsRepo.findById(id).exec();
   }
   findAllByUserId(id: Types.ObjectId): Promise<Savings[]> {
@@ -175,7 +178,9 @@ export class SavingsService {
     );
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} saving`;
+  validateGuarantor(id: Types.ObjectId): Promise<Savings> {
+    return this.savingsRepo
+      .findOne({ userId: id, type: savingsType.SACCO_SAVINGS, default: false })
+      .exec();
   }
 }

@@ -11,8 +11,8 @@ export enum savingsType {
 @Schema()
 @ObjectType()
 export class Savings {
-  @Field(()=>ID)
-  _id:Types.ObjectId
+  @Field(() => ID)
+  _id: Types.ObjectId;
   @Field(() => String)
   @Prop()
   name: string;
@@ -32,13 +32,14 @@ export class Savings {
   })
   frozen: boolean;
   @Field(() => ID)
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
-  userId: User;
- 
-  @Prop(() => ID)
+  @Prop({ type: Types.ObjectId })
+  userId: mongoose.Schema.Types.ObjectId;
+
+  @Field(() => ID)
+  @Prop({ type: Types.ObjectId })
   bankId: Types.ObjectId;
-  @Prop({type:Boolean, default:false})
-  default?: boolean
+  @Prop({ type: Boolean, default: false })
+  default?: boolean;
 }
 
 export type SavingsDocument = Savings & Document;

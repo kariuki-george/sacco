@@ -17,6 +17,7 @@ type Savings {
   amountAimed: Int!
   frozen: Boolean!
   userId: ID!
+  bankId: ID!
 }
 
 type Bank {
@@ -35,6 +36,12 @@ type Transaction {
   fromId: ID!
   status: String!
   requestId: String!
+  userId: ID!
+}
+
+type Guarantor {
+  amount: Int!
+  token: String!
   userId: ID!
 }
 
@@ -63,6 +70,7 @@ type Mutation {
   createSacco(id: String!): Savings!
   createNormalSavingsAccount(createNormalSaving: CreateNormalSavingDto!): Savings!
   outDeposit(outDeposit: DepositDto!): Bank!
+  createGuarantor(createGurantor: CreateGuarantorDto!): Guarantor!
   login(loginDto: LoginDto!): LoginResponse!
 }
 
@@ -90,6 +98,11 @@ input DepositDto {
   amount: Int!
   userId: ID!
   phoneNumber: Int
+}
+
+input CreateGuarantorDto {
+  userId: ID!
+  amount: Int!
 }
 
 input LoginDto {

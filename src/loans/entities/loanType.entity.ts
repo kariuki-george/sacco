@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema()
 export class LoanType {
@@ -13,3 +13,7 @@ export class LoanType {
   @Prop({ type: Boolean, default: false })
   guarantor: boolean;
 }
+
+export type LoanTypeDocument = LoanType & Document;
+
+export const LoanTypeSchema = SchemaFactory.createForClass(LoanType);
