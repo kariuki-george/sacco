@@ -153,7 +153,7 @@ export class BankService {
         new: true,
       },
     );
-
+    
     //save transaction
     await this.transaction({
       amount: outDepositDto.amount,
@@ -243,7 +243,7 @@ export class BankService {
     return this.bankRepo.find().exec();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} bank`;
-  }
+
+
+
 }

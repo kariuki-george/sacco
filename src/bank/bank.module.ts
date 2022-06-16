@@ -5,7 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Bank, BankSchema } from './entities/bank.entity';
 import { BullQueueModule } from 'src/bull/bull.module';
 import { SavingsConsumerService } from './consumers/savings.consumer';
-import { AccountsConsumerService } from './consumers/accounts.savings';
+import { AccountsConsumerService } from './consumers/accounts.cosumer';
 import { Transaction, TransactionSchema } from './entities/transaction.entity';
 
 @Module({

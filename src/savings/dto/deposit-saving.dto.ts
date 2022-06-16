@@ -15,6 +15,6 @@ export class DepositIntoSavingAccountDto {
   @Field(() => ID)
   @IsNotEmpty()
   savingsId: Types.ObjectId;
-  @Field(()=>ID,{nullable:true})
+  @Field(() => ID, { nullable: true })
   bankId: Types.ObjectId;
 }

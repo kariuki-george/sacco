@@ -1,17 +1,24 @@
-import { Prop, Schema } from '@nestjs/mongoose';
-import mongoose from 'mongoose';
-import { User } from '../../users/entities/user.entity';
-import { Loan } from './loan.entity';
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
 
-@Schema()
+@ObjectType()
+@Schema({ timestamps: true })
 export class Guarantor {
   @Prop()
+  @Field(() => Int)
   amount: number;
-  @Prop()
+  @Field(() => String)
+  @Prop({ expires: 300 })
   token: string;
+  @Field(() => ID)
   @Prop()
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
-  userId: User;
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Loan' })
-  loanId: Loan
+  userId: Types.ObjectId;
+
+  @Prop()
+  loanId?: Types.ObjectId;
 }
+
+export type GuarantorDocument = Guarantor & Document;
+
+export const GuarantorSchema = SchemaFactory.createForClass(Guarantor);

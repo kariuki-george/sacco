@@ -8,10 +8,11 @@ import { BankModule } from 'src/bank/bank.module';
 import { BullQueueModule } from 'src/bull/bull.module';
 import { SavingsConsumerService } from './consumers/savings.consumer';
 import { AccountsSavingsConsumerService } from './consumers/account.consumer';
+import { LoansConsumerService } from './consumers/loans.consumer';
 
 @Module({
  
-  providers: [SavingsResolver,SavingsService, SavingsConsumerService, AccountsSavingsConsumerService],
+  providers: [SavingsResolver,SavingsService, SavingsConsumerService, AccountsSavingsConsumerService, LoansConsumerService],
   imports: [
     MongooseModule.forFeature([
       {
