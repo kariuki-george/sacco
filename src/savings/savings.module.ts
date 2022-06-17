@@ -11,8 +11,13 @@ import { AccountsSavingsConsumerService } from './consumers/account.consumer';
 import { LoansConsumerService } from './consumers/loans.consumer';
 
 @Module({
- 
-  providers: [SavingsResolver,SavingsService, SavingsConsumerService, AccountsSavingsConsumerService, LoansConsumerService],
+  providers: [
+    SavingsResolver,
+    SavingsService,
+    SavingsConsumerService,
+    AccountsSavingsConsumerService,
+    LoansConsumerService
+  ],
   imports: [
     MongooseModule.forFeature([
       {
@@ -23,6 +28,5 @@ import { LoansConsumerService } from './consumers/loans.consumer';
     BankModule,
     BullQueueModule,
   ],
-  exports: [SavingsService],
 })
 export class SavingsModule {}

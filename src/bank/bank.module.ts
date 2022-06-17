@@ -7,6 +7,7 @@ import { BullQueueModule } from 'src/bull/bull.module';
 import { SavingsConsumerService } from './consumers/savings.consumer';
 import { AccountsConsumerService } from './consumers/accounts.cosumer';
 import { Transaction, TransactionSchema } from './entities/transaction.entity';
+import { LoansConsumerService } from './consumers/loans.consumer';
 
 @Module({
   providers: [
@@ -14,6 +15,7 @@ import { Transaction, TransactionSchema } from './entities/transaction.entity';
     BankService,
     SavingsConsumerService,
     AccountsConsumerService,
+    LoansConsumerService,
   ],
   imports: [
     MongooseModule.forFeature([
@@ -23,11 +25,10 @@ import { Transaction, TransactionSchema } from './entities/transaction.entity';
       },
       {
         name: Transaction.name,
-        schema:TransactionSchema
-      }
+        schema: TransactionSchema,
+      },
     ]),
     BullQueueModule,
   ],
-  exports: [BankService],
 })
 export class BankModule {}

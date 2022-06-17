@@ -1,5 +1,5 @@
 import { InputType, Int, ID, Field } from '@nestjs/graphql';
-import { IsNotEmpty, IsPositive } from 'class-validator';
+import { IsNotEmpty, IsPositive, IsString } from 'class-validator';
 import { Types } from 'mongoose';
 
 @InputType()
@@ -15,8 +15,10 @@ export class CreateLoanDto {
   @IsNotEmpty()
   loanTypeId: Types.ObjectId;
   @Field(() => String, { nullable: true })
-  @IsNotEmpty()
-  token: string;
+  token?: string;
   processing: boolean;
   guarantor?: boolean;
+  bankId: Types.ObjectId;
+  canWithdraw: boolean;
+  amountRemaining?: number;
 }

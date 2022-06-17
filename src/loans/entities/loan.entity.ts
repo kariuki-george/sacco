@@ -27,6 +27,14 @@ export class Loan {
   @Prop()
   @Field(() => ID)
   _id: Types.ObjectId;
+  @Prop()
+  bankId: Types.ObjectId;
+  @Field(() => Boolean)
+  @Prop({ default: false })
+  canWithdraw: boolean;
+  @Field(() => Int)
+  @Prop({ default: 0 })
+  amountRemaining: number;
 }
 
 export type LoanDocument = Loan & Document;

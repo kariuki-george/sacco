@@ -7,6 +7,7 @@ export enum bankType {
   ESCROW = 'ESCROW',
   DEFAULT_SAVINGS = 'DEFAULT_SAVINGS',
   MPESA = 'MPESA',
+  LOAN="LOAN"
 }
 
 @Schema()

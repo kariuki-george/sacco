@@ -1,5 +1,6 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
 
 @ObjectType()
 @Schema()
@@ -25,6 +26,8 @@ export class LoanType {
   @Field(() => Boolean)
   @Prop({ type: Boolean, default: false })
   guarantor: boolean;
+  @Field(()=>ID)
+  _id:Types.ObjectId
 }
 
 export type LoanTypeDocument = LoanType & Document;

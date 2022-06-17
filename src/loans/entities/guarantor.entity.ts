@@ -14,7 +14,7 @@ export class Guarantor {
   @Field(() => ID)
   @Prop()
   userId: Types.ObjectId;
-
+@Field(()=>ID)
   @Prop()
   loanId?: Types.ObjectId;
 }

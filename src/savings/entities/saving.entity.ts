@@ -39,6 +39,10 @@ export class Savings {
   bankId: mongoose.Schema.Types.ObjectId;
   @Prop({ type: Boolean, default: false })
   default?: boolean;
+
+  @Field(() => Int)
+  @Prop({ default: 0 })
+  amountLoanable: number;
 }
 
 export type SavingsDocument = Savings & Document;

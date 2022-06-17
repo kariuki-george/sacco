@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { TransferFundsDto } from 'src/loans/dto/transferFunds.dto';
 import { DepositIntoSavingAccountDto } from 'src/savings/dto/deposit-saving.dto';
 import { CreateBankDto } from './dto/create-bank.dto';
 import { DepositDto } from './dto/deposit.dto';
@@ -33,7 +34,7 @@ export class BankService {
     const newBank: CreateBankDto = {
       accountId: id,
       amount: 0,
-      type: bankType.SAVINGS,
+      type: bankType.DEFAULT_SAVINGS,
       default: false,
     };
     try {
@@ -153,7 +154,7 @@ export class BankService {
         new: true,
       },
     );
-    
+
     //save transaction
     await this.transaction({
       amount: outDepositDto.amount,
@@ -228,6 +229,14 @@ export class BankService {
       throw new InternalServerErrorException(error);
     }
   }
+  createLoanBank(id: Types.ObjectId): Promise<Bank> {
+    return this.create({
+      accountId: id,
+      amount: 0,
+      type: bankType.LOAN,
+      default: false,
+    });
+  }
 
   getUserTransactions(id: Types.ObjectId): Promise<Transaction[]> {
     return this.transactionRepo.find({ userId: id }).exec();
@@ -243,7 +252,42 @@ export class BankService {
     return this.bankRepo.find().exec();
   }
 
+  async transferFunds(transferFunds: TransferFundsDto): Promise<Bank> {
+    let bank: Bank;
 
+    bank = await this.bankRepo.findOneAndUpdate(
+      {
+        where: {
+          accountId: transferFunds.guarantorUserId
+            ? transferFunds.guarantorUserId
+            : transferFunds.userId,
+          default: false,
+          type: bankType.DEFAULT_SAVINGS,
+        },
+      },
+      { $inc: { amount: -transferFunds.amount } },
+    );
 
+    await this.transaction({
+      amount: transferFunds.amount,
+      from: bankType.ESCROW,
+      to: bankType.LOAN,
+      toId: transferFunds.loanBankId,
+      fromId: bank._id,
+      type: transactionType.INWITHDRAW,
+      userId: transferFunds.guarantorUserId
+        ? transferFunds.guarantorUserId
+        : transferFunds.userId,
+      status: transactionStatus.DECLINED,
+    });
 
+    //from sacco_savings to user
+    bank = await this.bankRepo.findByIdAndUpdate(transferFunds.loanBankId, {
+      $inc: {
+        amount: transferFunds.amount,
+      },
+    });
+    
+    return bank;
+  }
 }

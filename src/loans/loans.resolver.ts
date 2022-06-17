@@ -1,5 +1,4 @@
 import { LoansService } from './loans.service';
-
 import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
 import { CreateGuarantorDto } from './dto/createGuarantor.dto';
 import { Types } from 'mongoose';
@@ -12,6 +11,7 @@ import { CreateGuarantorResponse } from './res/createGuarantor.res';
 import { CreateLoanResponse } from './res/createLoan.res';
 import { CreateLoanDto } from './dto/create-loan.dto';
 import { PostLoanInitializationDto } from './dto/postLoanInitialization.dto';
+import { GetAllLoansResponse } from './res/getAllLoans';
 
 @Resolver()
 export class LoansResolver {
@@ -36,7 +36,7 @@ export class LoansResolver {
   }
 
   @Query(() => [LoanType])
-  getLoanTypes(): Promise<LoanType[]> {
+  getAllLoanTypes(): Promise<LoanType[]> {
     return this.loansService.getLoanTypes();
   }
   @Query(() => LoanType)
@@ -70,5 +70,12 @@ export class LoansResolver {
       ...validateGuarantor,
       loanId: new Types.ObjectId(validateGuarantor.loanId),
     });
+  }
+  @UseGuards(JwtAuthGuard)
+  @Query(()=>GetAllLoansResponse)
+  getAllLoansByUserId(
+    @Args('userId') id: string,
+  ): Promise<GetAllLoansResponse> {
+    return this.loansService.getAllLoansByUserId(new Types.ObjectId(id));
   }
 }
