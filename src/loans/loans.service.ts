@@ -151,12 +151,11 @@ export class LoansService {
 
       const userSavings = await this.fetchSavings(initializeLoan.userId);
 
-      //calculate loanAmount after interest
-      const amountAfterInterest =
+      //max loan a user can possibly borrow
+      const maxLoanable = (userSavings.amountLoanable * loanType.maxLoan) / 100;
+      //calculate loanAmount after interest is applied..== amount to be paid
+      const loanAndInterest =
         initializeLoan.amount * (1 + loanType.interestRate / 100);
-      const amountLoanable =
-        userSavings.amountLoanable -
-        (loanType.interestRate / 100) * userSavings.amountLoanable;
 
       //constants
       let loan: Loan;
@@ -184,7 +183,7 @@ export class LoansService {
                 token: initializeLoan.token,
               },
             ],
-            amountRemaining: amountAfterInterest,
+            amountRemaining: initializeLoan.amount,
             message: "Token expired or doesn't exist",
           });
         }
@@ -195,7 +194,7 @@ export class LoansService {
         //token valid
         //validate user savings
         let amountRemainingForGuarantors =
-          amountAfterInterest - savings.amountLoanable;
+          initializeLoan.amount - userSavings.amountLoanable;
         //create loan
         loanBank = await this.createLoanBank(initializeLoan.userId);
         //check if guarantor can fill for amountRemainingForGuarantors loan
@@ -210,6 +209,9 @@ export class LoansService {
             amountRemaining,
           });
           message = 'Token verified, another token required!';
+          amountRemaining = Math.round(
+            amountRemainingForGuarantors - guarantorInfo.amount,
+          );
         } else if (amountRemainingForGuarantors === guarantorInfo.amount) {
           //amount fits perfectly
           loan = await this.createLoan({
@@ -220,20 +222,20 @@ export class LoansService {
             canWithdraw: true,
           });
           message = 'Loan applied for successfully';
-          amountRemaining = amountRemainingForGuarantors - guarantorInfo.amount;
+          amountRemaining = 0;
         } else if (amountRemainingForGuarantors < guarantorInfo.amount) {
           //guarantor has pledged a greater amount than required
           loan = await this.createLoan({
             ...initializeLoan,
             amount:
               initializeLoan.amount +
-              (guarantorInfo.amount - amountAfterInterest),
+              (guarantorInfo.amount - amountRemainingForGuarantors),
             bankId: loanBank._id,
             guarantor: true,
             processing: false,
             canWithdraw: true,
           });
-          amountRemaining = guarantorInfo.amount - amountAfterInterest;
+          amountRemaining = 0;
           message =
             'Loan applied for successfully. Guarantor overpledged. Excess amount added to your loan.';
         }
@@ -284,9 +286,9 @@ export class LoansService {
       if (loanType.guarantor) {
         //this is a guarantor loan
         //check if savings are enough
-        if (userSavings.amountLoanable < amountAfterInterest) {
+        if (initializeLoan.amount < maxLoanable) {
           throw new BadRequestException({
-            message: `You can only borrow upto ${amountLoanable}. Guarantor needed.`,
+            message: `You can only borrow upto ${maxLoanable}. Guarantor needed.`,
           });
         }
         //savings enough
@@ -302,13 +304,13 @@ export class LoansService {
         //freeze savings to a certain amount
         //amount = amount requested
         savings = await this.freezeSavingsAccount({
-          amount: amountAfterInterest,
+          amount: loanAndInterest,
           userId: initializeLoan.userId,
         });
         //transfer funds
         await this.transferFunds({
           loanBankId: loanBank._id,
-          amount: amountAfterInterest,
+          amount: loanAndInterest,
           userId: initializeLoan.userId,
         });
         //return
@@ -320,9 +322,9 @@ export class LoansService {
       }
       //this is not a guarantor loan
       //check if user savings are not enough
-      if (userSavings.amountLoanable < amountAfterInterest) {
+      if (maxLoanable < initializeLoan.amount) {
         throw new BadRequestException({
-          message: `You can only borrow upto ${amountLoanable}`,
+          message: `You can only borrow upto ${maxLoanable}`,
         });
       }
       //sacco_savings are enough
@@ -337,17 +339,16 @@ export class LoansService {
       });
 
       //freeze savings to certain amount
-     
+
       savings = await this.freezeSavingsAccount({
-        amount: amountAfterInterest,
+        amount: loanAndInterest,
         userId: initializeLoan.userId,
       });
-
 
       //transfer funds
       await this.transferFunds({
         loanBankId: loanBank._id,
-        amount: amountAfterInterest,
+        amount: loanAndInterest,
         userId: initializeLoan.userId,
       });
 
@@ -408,14 +409,19 @@ export class LoansService {
           $set: {
             processing: false,
             canWithdraw: true,
+            amountRemaining: 0,
           },
         });
         message = 'Loan created successfully';
-      } else if (amountRemainingAfterGuarantor == guarantorInfo.amount) {
+      } else if (amountRemainingAfterGuarantor < guarantorInfo.amount) {
         loan = await this.loansRepo.findByIdAndUpdate(loan._id, {
           $set: {
             processing: false,
             canWithdraw: true,
+            amountRemaining: 0,
+          },
+          $inc: {
+            amount: guarantorInfo.amount - amountRemainingAfterGuarantor,
           },
         });
         message =

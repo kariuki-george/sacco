@@ -146,6 +146,7 @@ input CreateUserDto {
   lastName: String!
   email: String!
   password: String!
+  phoneNumber: Int!
 }
 
 input DepositIntoSavingAccountDto {
