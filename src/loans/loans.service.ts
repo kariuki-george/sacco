@@ -235,7 +235,7 @@ export class LoansService {
           amount: userSavings.amountLoanable,
         });
         //freeze guarantor savings
-        
+
         await this.freezeSavingsAccount({
           amount: guarantorInfo.amount,
           userId: guarantorInfo.userId,
@@ -247,6 +247,7 @@ export class LoansService {
 
         await this.transferFunds({
           amount: guarantorInfo.amount,
+
           guarantorUserId: guarantorInfo.userId,
           loanBankId: loanBank._id,
         });
@@ -350,7 +351,6 @@ export class LoansService {
         amountRemaining: 0,
       };
     } catch (error) {
-      console.log(error);
       throw new BadRequestException(error.message || error.response.message);
     }
   }
@@ -398,7 +398,7 @@ export class LoansService {
               processing: false,
               canWithdraw: true,
               amountRemaining: 0,
-            }
+            },
           },
           {
             new: true,
@@ -431,9 +431,9 @@ export class LoansService {
             $set: {
               processing: true,
             },
-            $inc:{
-              amountRemaining: -guarantorInfo.amount
-            }
+            $inc: {
+              amountRemaining: -guarantorInfo.amount,
+            },
           },
           {
             new: true,
