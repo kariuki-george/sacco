@@ -6,6 +6,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { SavingsProducerService } from 'src/bull/savings.producer.service';
+import { FreezeSavingsDto } from 'src/savings/dto/freezeSavings.dto';
 import { CreateSavingDto } from './dto/create-saving.dto';
 import { CreateNormalSavingDto } from './dto/createNormalSaving.dto';
 import { DepositIntoSavingAccountDto } from './dto/deposit-saving.dto';
@@ -80,21 +81,32 @@ export class SavingsService {
   }
 
   async findTotalSavings(): Promise<Number> {
-    const bank = await this.savingsRepo.findOne({name: savingsType.SACCO_SAVINGS, default:true})
-    return  bank.amountSaved;
+    const bank = await this.savingsRepo.findOne({
+      name: savingsType.SACCO_SAVINGS,
+      default: true,
+    });
+    return bank.amountSaved;
   }
 
   findAll(): Promise<Savings[]> {
     return this.savingsRepo.find().exec();
   }
 
-  findOne(id: Types.ObjectId):Promise<Savings> {
+  findById(id: Types.ObjectId): Promise<Savings> {
     return this.savingsRepo.findById(id).exec();
   }
   findAllByUserId(id: Types.ObjectId): Promise<Savings[]> {
     return this.savingsRepo.find({ userId: id }).exec();
   }
-
+  findOne(userId: Types.ObjectId): Promise<Savings> {
+    return this.savingsRepo
+      .findOne({
+        userId,
+        type: savingsType.SACCO_SAVINGS,
+        default: false,
+      })
+      .exec();
+  }
   async depositIntoSaccoSavingAccount(
     depositIntoSavingAccountDto: DepositIntoSavingAccountDto,
   ) {
@@ -128,7 +140,7 @@ export class SavingsService {
     depositIntoSavingAccountDto: DepositIntoSavingAccountDto,
   ) {
     try {
-      const savingsRecord = await this.findOne(
+      const savingsRecord = await this.findById(
         depositIntoSavingAccountDto.savingsId,
       );
 
@@ -139,11 +151,13 @@ export class SavingsService {
 
       await res.finished();
       //updating the bank finished now update the savings account
+      //then for any savings, cap amountLoanable to 100% of what has been deposited.
       const savingsUpdate = await this.savingsRepo.findByIdAndUpdate(
         depositIntoSavingAccountDto.savingsId,
         {
           $inc: {
             amountSaved: depositIntoSavingAccountDto.amount,
+            amountLoanable: depositIntoSavingAccountDto.amount,
           },
         },
         {
@@ -175,7 +189,13 @@ export class SavingsService {
     );
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} saving`;
+  freezeSavingsAccount(freezeSavings: FreezeSavingsDto): Promise<Savings> {
+    return this.savingsRepo
+      .findOneAndUpdate(
+        { userId: freezeSavings.userId },
+        { $inc: { amountLoanable: -freezeSavings.amount } },
+        { new: true },
+      )
+      .exec();
   }
 }

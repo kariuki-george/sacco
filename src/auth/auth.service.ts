@@ -1,19 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User, userRole } from 'src/users/entities/user.entity';
+import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { LoginResponse } from './res/login.res';
 import * as argon from 'argon2';
+import { Cache } from 'cache-manager';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly configService:ConfigService,
+    @Inject(CACHE_MANAGER) private readonly cacheService: Cache,
   ) {}
 
   async validate(email: string, password: string): Promise<User | null> {
-    const user = await this.userService.findUserByEmail(email);
+    //look if user exists in cache first
+    let user: User = await this.cacheService.get(email);
+    if (!user) {
+      user = await this.userService.findUserByEmail(email);
+    }
+
     if (!user) {
       return null;
     }
@@ -24,7 +33,11 @@ export class AuthService {
     }
     return null;
   }
-  login(user: User): LoginResponse {
+  async login(user: User): Promise<LoginResponse> {
+    //set user in cache
+    await this.cacheService.set(user.email, user, {
+      ttl: 60 * 3,
+    });
     const payload = {
       email: user.email,
     };
@@ -34,7 +47,7 @@ export class AuthService {
 
   async verify(token: string): Promise<User> {
     const decoded = this.jwtService.verify(token, {
-      secret: 'nopass',
+      secret: this.configService.get<string>("JWT_SECRET"),
     });
     const user = await this.userService.findUserByEmail(decoded.email);
     return user;

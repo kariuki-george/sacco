@@ -1,15 +1,41 @@
-import { Prop, Schema } from "@nestjs/mongoose";
-import mongoose from "mongoose";
-import { User } from "../../users/entities/user.entity";
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
 
-
-@Schema()
+@ObjectType()
+@Schema({ timestamps: true })
 export class Loan {
-    @Prop()
-    amount: number
-    @Prop()
-    amountPaid: number
-    @Prop({type: mongoose.Schema.Types.ObjectId,ref: "User"})
-    userId: User
-    
+  @Prop()
+  @Field(() => Int)
+  amount: number;
+  @Prop({ default: 0 })
+  @Field(() => Int)
+  amountPaid: number;
+  @Field(() => ID)
+  @Prop()
+  userId: Types.ObjectId;
+  @Field(() => ID)
+  @Prop()
+  loanTypeId: Types.ObjectId;
+  @Field(() => Boolean)
+  @Prop({ default: false })
+  guarantor: boolean;
+
+  @Prop({ default: false })
+  @Field(() => Boolean)
+  processing: boolean;
+  @Field(() => ID)
+  _id: Types.ObjectId;
+  @Prop()
+  bankId: Types.ObjectId;
+  @Field(() => Boolean)
+  @Prop({ default: false })
+  canWithdraw: boolean;
+  @Field(() => Number)
+  @Prop({ default: 0 })
+  amountRemaining: number;
 }
+
+export type LoanDocument = Loan & Document;
+
+export const LoanSchema = SchemaFactory.createForClass(Loan);

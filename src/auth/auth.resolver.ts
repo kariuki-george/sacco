@@ -4,7 +4,6 @@ import { User } from 'src/users/entities/user.entity';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { GqlAuthGuard } from './guards/gql-auth.guard';
-import { LocalAuthGuard } from './guards/local-auth.guard';
 import { LoginResponse } from './res/login.res';
 
 @Resolver('auth')

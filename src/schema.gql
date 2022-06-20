@@ -17,9 +17,12 @@ type Savings {
   amountAimed: Int!
   frozen: Boolean!
   userId: ID!
+  bankId: ID!
+  amountLoanable: Float!
 }
 
 type Bank {
+  _id: ID!
   default: Boolean!
   type: String!
   amount: Int!
@@ -38,6 +41,65 @@ type Transaction {
   userId: ID!
 }
 
+type Guarantor {
+  amount: Int!
+  token: String!
+  userId: ID!
+  loanId: ID!
+}
+
+type Loan {
+  amount: Int!
+  amountPaid: Int!
+  userId: ID!
+  loanTypeId: ID!
+  guarantor: Boolean!
+  processing: Boolean!
+  _id: ID!
+  canWithdraw: Boolean!
+  amountRemaining: Float!
+}
+
+type LoanType {
+  name: String!
+
+  """
+  This is a percentage for loans savings...eg, 90 means 90% total savings.
+  """
+  maxLoan: Int!
+
+  """Interest rate in percentage."""
+  interestRate: Int!
+
+  """This is number of months required to repay the loan."""
+  repayPeriod: Int!
+  guarantor: Boolean!
+  _id: ID!
+}
+
+type Token {
+  status: String!
+  token: String!
+}
+
+type CreateLoanResponse {
+  loan: Loan
+  token: [Token!]
+  message: String!
+
+  """Amount remaining for guarantors to guarantee"""
+  amountRemaining: Int
+}
+
+type CreateGuarantorResponse {
+  token: String!
+}
+
+type GetAllLoansResponse {
+  loans: [Loan!]!
+  guarantorLoans: [Guarantor!]!
+}
+
 type LoginResponse {
   user: User!
   accessToken: String!
@@ -53,6 +115,9 @@ type Query {
   getSavingsByUserId(id: String!): [Savings!]!
   getEscrow(userId: String!): Bank!
   getUserTransactions(userId: String!): [Transaction!]!
+  getAllLoanTypes: [LoanType!]!
+  getLoanTypeId(loanTypeId: String!): LoanType!
+  getAllLoansByUserId(userId: String!): GetAllLoansResponse!
 }
 
 type Mutation {
@@ -63,6 +128,16 @@ type Mutation {
   createSacco(id: String!): Savings!
   createNormalSavingsAccount(createNormalSaving: CreateNormalSavingDto!): Savings!
   outDeposit(outDeposit: DepositDto!): Bank!
+  createGuarantor(createGurantor: CreateGuarantorDto!): CreateGuarantorResponse!
+  createLoanType(createLoanType: CreateLoanTypeDto!): LoanType!
+
+  """
+  This mutation can create a guarantorless loan and also initializes guarantor loans. Use this only when validating the first guarantor. For subsequent guarantor validations, use postLoanInitialization mutation
+  """
+  initializeLoan(createLoan: CreateLoanDto!): CreateLoanResponse!
+
+  """This mutation is two be used to verify the second guarantor onwards"""
+  postLoanInitialization(validateGuarantor: PostLoanInitializationDto!): CreateLoanResponse!
   login(loginDto: LoginDto!): LoginResponse!
 }
 
@@ -90,6 +165,39 @@ input DepositDto {
   amount: Int!
   userId: ID!
   phoneNumber: Int
+}
+
+input CreateGuarantorDto {
+  userId: ID!
+  amount: Int!
+}
+
+input CreateLoanTypeDto {
+  name: String!
+
+  """
+  This is a percentage for loans savings...eg, 90 means 90% total savings.
+  """
+  maxLoan: Int!
+
+  """Interest rate in percentage."""
+  interestRate: Int!
+
+  """This is number of months required to repay the loan."""
+  repayPeriod: Int!
+  guarantor: Boolean!
+}
+
+input CreateLoanDto {
+  amount: Int!
+  userId: ID!
+  loanTypeId: ID!
+  token: String
+}
+
+input PostLoanInitializationDto {
+  loanId: ID!
+  token: String!
 }
 
 input LoginDto {

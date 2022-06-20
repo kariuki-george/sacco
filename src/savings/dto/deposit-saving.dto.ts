@@ -1,6 +1,6 @@
 import { Field, ID, InputType, Int } from '@nestjs/graphql';
 import { IsNotEmpty, IsNumber, IsPositive } from 'class-validator';
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 @InputType()
 export class DepositIntoSavingAccountDto {
@@ -15,6 +15,6 @@ export class DepositIntoSavingAccountDto {
   @Field(() => ID)
   @IsNotEmpty()
   savingsId: Types.ObjectId;
-  @Field(()=>ID,{nullable:true})
-  bankId: Types.ObjectId;
+  @Field(() => ID, { nullable: true })
+  bankId: mongoose.Schema.Types.ObjectId;
 }

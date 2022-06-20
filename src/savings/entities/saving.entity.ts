@@ -1,7 +1,6 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Types } from 'mongoose';
-import { User } from '../../users/entities/user.entity';
 
 export enum savingsType {
   USER_SAVINGS = 'USER_SAVINGS',
@@ -11,8 +10,8 @@ export enum savingsType {
 @Schema()
 @ObjectType()
 export class Savings {
-  @Field(()=>ID)
-  _id:Types.ObjectId
+  @Field(() => ID)
+  _id: Types.ObjectId;
   @Field(() => String)
   @Prop()
   name: string;
@@ -32,13 +31,18 @@ export class Savings {
   })
   frozen: boolean;
   @Field(() => ID)
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
-  userId: User;
- 
-  @Prop(() => ID)
-  bankId: Types.ObjectId;
-  @Prop({type:Boolean, default:false})
-  default?: boolean
+  @Prop()
+  userId: mongoose.Schema.Types.ObjectId;
+
+  @Field(() => ID)
+  @Prop()
+  bankId: mongoose.Schema.Types.ObjectId;
+  @Prop({ type: Boolean, default: false })
+  default?: boolean;
+
+  @Field(() => Number)
+  @Prop({ default: 0 })
+  amountLoanable: number;
 }
 
 export type SavingsDocument = Savings & Document;

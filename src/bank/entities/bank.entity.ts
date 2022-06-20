@@ -1,17 +1,20 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 export enum bankType {
   SAVINGS = 'SAVINGS',
   ESCROW = 'ESCROW',
   DEFAULT_SAVINGS = 'DEFAULT_SAVINGS',
   MPESA = 'MPESA',
+  LOAN="LOAN"
 }
 
 @Schema()
 @ObjectType()
 export class Bank {
+  @Field(()=>ID)
+  _id: Types.ObjectId;
   @Field(() => Boolean)
   @Prop({ type: Boolean, default: false })
   default: boolean;
