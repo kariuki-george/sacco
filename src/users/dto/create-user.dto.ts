@@ -1,6 +1,6 @@
-import { Field, InputType } from "@nestjs/graphql";
+import { Field, InputType, Int } from "@nestjs/graphql";
 import { Transform, TransformFnParams } from "class-transformer";
-import { IsEmail, IsNotEmpty, IsString, MinLength } from "class-validator";
+import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString, MinLength } from "class-validator";
 
 @InputType()
 export class CreateUserDto {
@@ -24,5 +24,10 @@ export class CreateUserDto {
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @Field()
   password: string;
+  @Field(()=>Int)
+  @IsPhoneNumber()
+  phoneNumber:number
+
+
   
 }
