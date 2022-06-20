@@ -25,8 +25,9 @@ export class User {
   password?: string;
   @Prop({ nullable: true, default: userRole.MEMBER })
   role?: userRole;
+  @Field(()=>String)
   @Prop()
-  phoneNumber: number
+  phoneNumber: string
 }
 
 export type UserDocument = User & Document;
