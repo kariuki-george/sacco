@@ -8,7 +8,7 @@ export class Loan {
   @Prop()
   @Field(() => Int)
   amount: number;
-  @Prop()
+  @Prop({ default: 0 })
   @Field(() => Int)
   amountPaid: number;
   @Field(() => ID)
@@ -24,7 +24,6 @@ export class Loan {
   @Prop({ default: false })
   @Field(() => Boolean)
   processing: boolean;
-  @Prop()
   @Field(() => ID)
   _id: Types.ObjectId;
   @Prop()
@@ -32,7 +31,7 @@ export class Loan {
   @Field(() => Boolean)
   @Prop({ default: false })
   canWithdraw: boolean;
-  @Field(() => Int)
+  @Field(() => Number)
   @Prop({ default: 0 })
   amountRemaining: number;
 }

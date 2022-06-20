@@ -7,7 +7,6 @@ import { Types } from 'mongoose';
 export class LoanType {
   @Field(() => String)
   @Prop({ unique: true })
-  
   name: string;
   @Prop()
   @Field(() => Int, {
@@ -26,8 +25,8 @@ export class LoanType {
   @Field(() => Boolean)
   @Prop({ type: Boolean, default: false })
   guarantor: boolean;
-  @Field(()=>ID)
-  _id:Types.ObjectId
+  @Field(() => ID)
+  _id: Types.ObjectId;
 }
 
 export type LoanTypeDocument = LoanType & Document;

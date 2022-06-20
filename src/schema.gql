@@ -18,7 +18,7 @@ type Savings {
   frozen: Boolean!
   userId: ID!
   bankId: ID!
-  amountLoanable: Int!
+  amountLoanable: Float!
 }
 
 type Bank {
@@ -57,7 +57,7 @@ type Loan {
   processing: Boolean!
   _id: ID!
   canWithdraw: Boolean!
-  amountRemaining: Int!
+  amountRemaining: Float!
 }
 
 type LoanType {

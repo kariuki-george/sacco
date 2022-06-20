@@ -40,7 +40,7 @@ export class Savings {
   @Prop({ type: Boolean, default: false })
   default?: boolean;
 
-  @Field(() => Int)
+  @Field(() => Number)
   @Prop({ default: 0 })
   amountLoanable: number;
 }

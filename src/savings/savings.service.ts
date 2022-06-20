@@ -101,7 +101,9 @@ export class SavingsService {
   findOne(userId: Types.ObjectId): Promise<Savings> {
     return this.savingsRepo
       .findOne({
-        where: { userId, type: savingsType.SACCO_SAVINGS, default: false },
+        userId,
+        type: savingsType.SACCO_SAVINGS,
+        default: false,
       })
       .exec();
   }
@@ -149,13 +151,13 @@ export class SavingsService {
 
       await res.finished();
       //updating the bank finished now update the savings account
-      //then for any savings, cap amountLoanable to 90% of what has been deposited.
+      //then for any savings, cap amountLoanable to 100% of what has been deposited.
       const savingsUpdate = await this.savingsRepo.findByIdAndUpdate(
         depositIntoSavingAccountDto.savingsId,
         {
           $inc: {
             amountSaved: depositIntoSavingAccountDto.amount,
-            amountLoanable: depositIntoSavingAccountDto.amount * 0.9,
+            amountLoanable: depositIntoSavingAccountDto.amount,
           },
         },
         {

@@ -24,9 +24,10 @@ export class LoansConsumerService {
     const { id } = job.data;
     return this.savingsService.findOne(id);
   }
-  @Process("saving-freezeSavingsAccount")
-  async freezeSavingsAccount(job: Job<FreezeSavingsDto>):Promise<Savings>{
-    return this.savingsService.freezeSavingsAccount({...job.data})
+  @Process('saving-freezeSavingsAccount')
+  async freezeSavingsAccount(job: Job<FreezeSavingsDto>): Promise<Savings> {
+    const { userId, amount } = job.data;
 
+    return this.savingsService.freezeSavingsAccount({ userId, amount });
   }
 }

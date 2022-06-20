@@ -21,9 +21,9 @@ export class LoansProducerService {
     return this.loansQueue.add('bank-createLoanBank', { id });
   }
   freezeSavingsAccount(freezeSavings: FreezeSavingsDto) {
-    return this.loansQueue.add('saving-freezeSavingsAccount', {freezeSavings});
+    return this.loansQueue.add('saving-freezeSavingsAccount', freezeSavings);
   }
   transferFunds(transferFunds: TransferFundsDto) {
-    return this.loansQueue.add('bank-transferFunds',{transferFunds});
+    return this.loansQueue.add('bank-transferFunds', transferFunds);
   }
 }

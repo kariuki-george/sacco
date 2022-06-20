@@ -148,11 +148,15 @@ export class LoansService {
       );
 
       //get userSavings
+
       const userSavings = await this.fetchSavings(initializeLoan.userId);
 
       //calculate loanAmount after interest
       const amountAfterInterest =
         initializeLoan.amount * (1 + loanType.interestRate / 100);
+      const amountLoanable =
+        userSavings.amountLoanable -
+        (loanType.interestRate / 100) * userSavings.amountLoanable;
 
       //constants
       let loan: Loan;
@@ -282,7 +286,7 @@ export class LoansService {
         //check if savings are enough
         if (userSavings.amountLoanable < amountAfterInterest) {
           throw new BadRequestException({
-            message: `You can only borrow upto ${userSavings.amountLoanable}. Guarantor needed.`,
+            message: `You can only borrow upto ${amountLoanable}. Guarantor needed.`,
           });
         }
         //savings enough
@@ -318,7 +322,7 @@ export class LoansService {
       //check if user savings are not enough
       if (userSavings.amountLoanable < amountAfterInterest) {
         throw new BadRequestException({
-          message: `You can only borrow upto ${userSavings.amountLoanable}`,
+          message: `You can only borrow upto ${amountLoanable}`,
         });
       }
       //sacco_savings are enough
@@ -333,11 +337,13 @@ export class LoansService {
       });
 
       //freeze savings to certain amount
-
+     
       savings = await this.freezeSavingsAccount({
         amount: amountAfterInterest,
         userId: initializeLoan.userId,
       });
+
+
       //transfer funds
       await this.transferFunds({
         loanBankId: loanBank._id,
@@ -349,7 +355,7 @@ export class LoansService {
       return {
         loan,
         message: 'Loan applied successfully',
-        amountRemaining: amountAfterInterest - initializeLoan.amount,
+        amountRemaining: 0,
       };
     } catch (error) {
       throw new BadRequestException(error.message || error.response.message);
