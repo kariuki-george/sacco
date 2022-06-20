@@ -69,7 +69,7 @@ export class LoansService {
         token,
         {
           token,
-          userId: createGuarantor.amount,
+          userId: createGuarantor.userId,
           amount: createGuarantor.amount,
         },
         {
@@ -151,42 +151,27 @@ export class LoansService {
 
       const userSavings = await this.fetchSavings(initializeLoan.userId);
 
-      //calculate loanAmount after interest
-      const amountAfterInterest =
+      //max loan a user can possibly borrow
+      const maxLoanable = (userSavings.amountLoanable * loanType.maxLoan) / 100;
+      //calculate loanAmount after interest is applied..== amount to be paid
+      const loanAndInterest =
         initializeLoan.amount * (1 + loanType.interestRate / 100);
-      const amountLoanable =
-        userSavings.amountLoanable -
-        (loanType.interestRate / 100) * userSavings.amountLoanable;
 
       //constants
       let loan: Loan;
       let loanBank: Bank;
-      let savings: Savings;
 
-      if (initializeLoan.token) {
+      if (loanType.guarantor && initializeLoan.token) {
         //confirm this is a guarantor loan
-        if (!loanType.guarantor) {
-          throw new BadRequestException(
-            'Error in loan application, token provided for a nonGuarantor loan.',
-          );
-        }
 
         //this is guarantor loan...validation required
         const guarantorInfo: Guarantor = await this.cacheService.get(
           initializeLoan.token,
         );
-        //if token === null, then it has expired or doesn't exist
-        if (!guarantorInfo.token) {
-          throw new BadRequestException({
-            token: [
-              {
-                status: TokenValidationStatus.DECLINED,
-                token: initializeLoan.token,
-              },
-            ],
-            amountRemaining: amountAfterInterest,
-            message: "Token expired or doesn't exist",
-          });
+        if (!guarantorInfo) {
+          throw new Error(
+            `Provided token ${initializeLoan.token} already expired or doesn't exist.`,
+          );
         }
 
         let message: string;
@@ -195,7 +180,8 @@ export class LoansService {
         //token valid
         //validate user savings
         let amountRemainingForGuarantors =
-          amountAfterInterest - savings.amountLoanable;
+          initializeLoan.amount - userSavings.amountLoanable;
+
         //create loan
         loanBank = await this.createLoanBank(initializeLoan.userId);
         //check if guarantor can fill for amountRemainingForGuarantors loan
@@ -210,6 +196,9 @@ export class LoansService {
             amountRemaining,
           });
           message = 'Token verified, another token required!';
+          amountRemaining = Math.round(
+            amountRemainingForGuarantors - guarantorInfo.amount,
+          );
         } else if (amountRemainingForGuarantors === guarantorInfo.amount) {
           //amount fits perfectly
           loan = await this.createLoan({
@@ -220,29 +209,30 @@ export class LoansService {
             canWithdraw: true,
           });
           message = 'Loan applied for successfully';
-          amountRemaining = amountRemainingForGuarantors - guarantorInfo.amount;
+          amountRemaining = 0;
         } else if (amountRemainingForGuarantors < guarantorInfo.amount) {
           //guarantor has pledged a greater amount than required
           loan = await this.createLoan({
             ...initializeLoan,
             amount:
               initializeLoan.amount +
-              (guarantorInfo.amount - amountAfterInterest),
+              (guarantorInfo.amount - amountRemainingForGuarantors),
             bankId: loanBank._id,
             guarantor: true,
             processing: false,
             canWithdraw: true,
           });
-          amountRemaining = guarantorInfo.amount - amountAfterInterest;
+          amountRemaining = 0;
           message =
             'Loan applied for successfully. Guarantor overpledged. Excess amount added to your loan.';
         }
 
         //freeze user savings
+
         //savings.amountLoanable since all users savings are used
         await this.freezeSavingsAccount({
           userId: initializeLoan.userId,
-          amount: savings.amountLoanable,
+          amount: userSavings.amountLoanable,
         });
         //freeze guarantor savings
 
@@ -254,14 +244,17 @@ export class LoansService {
         await this.cacheService.del(guarantorInfo.token);
         //transfer funds
         //from guarantor
+
         await this.transferFunds({
           amount: guarantorInfo.amount,
+
           guarantorUserId: guarantorInfo.userId,
           loanBankId: loanBank._id,
         });
+
         //from user sacco savings
         await this.transferFunds({
-          amount: savings.amountLoanable,
+          amount: userSavings.amountLoanable,
           userId: initializeLoan.userId,
           loanBankId: loanBank._id,
         });
@@ -279,14 +272,15 @@ export class LoansService {
           ],
         };
       }
+
       //no token provided...loan can be guarantor based or nonguarantor based
       //identify the type of loan using loanType
       if (loanType.guarantor) {
         //this is a guarantor loan
         //check if savings are enough
-        if (userSavings.amountLoanable < amountAfterInterest) {
+        if (initializeLoan.amount > maxLoanable) {
           throw new BadRequestException({
-            message: `You can only borrow upto ${amountLoanable}. Guarantor needed.`,
+            message: `You can only borrow upto ${maxLoanable}. Guarantor needed.`,
           });
         }
         //savings enough
@@ -301,14 +295,14 @@ export class LoansService {
         });
         //freeze savings to a certain amount
         //amount = amount requested
-        savings = await this.freezeSavingsAccount({
-          amount: amountAfterInterest,
+        await this.freezeSavingsAccount({
+          amount: loanAndInterest,
           userId: initializeLoan.userId,
         });
         //transfer funds
         await this.transferFunds({
           loanBankId: loanBank._id,
-          amount: amountAfterInterest,
+          amount: loanAndInterest,
           userId: initializeLoan.userId,
         });
         //return
@@ -320,9 +314,9 @@ export class LoansService {
       }
       //this is not a guarantor loan
       //check if user savings are not enough
-      if (userSavings.amountLoanable < amountAfterInterest) {
+      if (maxLoanable < initializeLoan.amount) {
         throw new BadRequestException({
-          message: `You can only borrow upto ${amountLoanable}`,
+          message: `You can only borrow upto ${maxLoanable}`,
         });
       }
       //sacco_savings are enough
@@ -337,17 +331,16 @@ export class LoansService {
       });
 
       //freeze savings to certain amount
-     
-      savings = await this.freezeSavingsAccount({
-        amount: amountAfterInterest,
+
+      await this.freezeSavingsAccount({
+        amount: loanAndInterest,
         userId: initializeLoan.userId,
       });
-
 
       //transfer funds
       await this.transferFunds({
         loanBankId: loanBank._id,
-        amount: amountAfterInterest,
+        amount: loanAndInterest,
         userId: initializeLoan.userId,
       });
 
@@ -379,21 +372,15 @@ export class LoansService {
       const guarantorInfo: Guarantor = await this.cacheService.get(
         postLoanInitializion.token,
       );
-      //delete guarantor token
-      await this.cacheService.del(guarantorInfo.token);
+
       //throw an error if token doesn't exist
       if (!guarantorInfo) {
-        throw new BadRequestException({
-          token: [
-            {
-              status: TokenValidationStatus.DECLINED,
-              token: postLoanInitializion.token,
-            },
-          ],
-          amountRemaining: loan.amountRemaining,
-          message: "Token expired or doesn't exist",
-        });
+        throw new Error(
+          `Provided token ${postLoanInitializion.token} already expired or doesn't exist.`,
+        );
       }
+      //delete guarantor token
+      await this.cacheService.del(guarantorInfo.token);
 
       let guarantor: Guarantor;
       //token is valid
@@ -404,28 +391,54 @@ export class LoansService {
 
       if (amountRemainingAfterGuarantor == guarantorInfo.amount) {
         //create guarantor and update loan info
-        loan = await this.loansRepo.findByIdAndUpdate(loan._id, {
-          $set: {
-            processing: false,
-            canWithdraw: true,
+        loan = await this.loansRepo.findByIdAndUpdate(
+          loan._id,
+          {
+            $set: {
+              processing: false,
+              canWithdraw: true,
+              amountRemaining: 0,
+            },
           },
-        });
+          {
+            new: true,
+          },
+        );
         message = 'Loan created successfully';
-      } else if (amountRemainingAfterGuarantor == guarantorInfo.amount) {
-        loan = await this.loansRepo.findByIdAndUpdate(loan._id, {
-          $set: {
-            processing: false,
-            canWithdraw: true,
+      } else if (amountRemainingAfterGuarantor < guarantorInfo.amount) {
+        loan = await this.loansRepo.findByIdAndUpdate(
+          loan._id,
+          {
+            $set: {
+              processing: false,
+              canWithdraw: true,
+              amountRemaining: 0,
+            },
+            $inc: {
+              amount: guarantorInfo.amount - amountRemainingAfterGuarantor,
+            },
           },
-        });
+          {
+            new: true,
+          },
+        );
         message =
           'Loan create successfully. Guarantor pledged an excess amount. The excess has been added to your loan';
       } else {
-        loan = await this.loansRepo.findByIdAndUpdate(loan._id, {
-          $set: {
-            processing: true,
+        loan = await this.loansRepo.findByIdAndUpdate(
+          loan._id,
+          {
+            $set: {
+              processing: true,
+            },
+            $inc: {
+              amountRemaining: -guarantorInfo.amount,
+            },
           },
-        });
+          {
+            new: true,
+          },
+        );
         message = 'Token validated, Another token required';
       }
 
@@ -436,19 +449,19 @@ export class LoansService {
       //get all tokens related to this loan
       const guarantors = await this.guarantorsRepo.find({ loanId: loan._id });
       let index = 0;
-      let tokens: Token[] = [];
-      while (tokens.length > index) {
-        tokens.push({
+      let token: Token[] = [];
+      while (guarantors.length > index) {
+        token.push({
           status: TokenValidationStatus.ACCEPTED,
           token: guarantors[index].token,
         });
         index += 1;
       }
 
-      tokens[tokens.length] = {
+      token.push({
         status: TokenValidationStatus.ACCEPTED,
         token: guarantorInfo.token,
-      };
+      });
 
       //transfer funds
       await this.transferFunds({
@@ -459,9 +472,9 @@ export class LoansService {
 
       return {
         loan,
-        token: [...tokens],
+        token,
         message,
-        amountRemaining: amountRemainingAfterGuarantor,
+        amountRemaining: loan.amountRemaining,
       };
     } catch (error) {
       throw new BadRequestException(error.message || error.response.message);

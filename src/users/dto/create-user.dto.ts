@@ -24,9 +24,9 @@ export class CreateUserDto {
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @Field()
   password: string;
-  @Field(()=>Int)
+  @Field(()=>String)
   @IsPhoneNumber()
-  phoneNumber:number
+  phoneNumber:string
 
 
   
