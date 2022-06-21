@@ -257,20 +257,20 @@ export class BankService {
 
     bank = await this.bankRepo.findOneAndUpdate(
       {
-        where: {
+      
           accountId: transferFunds.guarantorUserId
             ? transferFunds.guarantorUserId
             : transferFunds.userId,
           default: false,
           type: bankType.DEFAULT_SAVINGS,
-        },
+      
       },
       { $inc: { amount: -transferFunds.amount } },
     );
 
     await this.transaction({
       amount: transferFunds.amount,
-      from: bankType.ESCROW,
+      from: bankType.DEFAULT_SAVINGS,
       to: bankType.LOAN,
       toId: transferFunds.loanBankId,
       fromId: bank._id,

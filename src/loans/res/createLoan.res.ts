@@ -22,7 +22,7 @@ export class CreateLoanResponse {
   token?: Token[];
   @Field(() => String)
   message: string;
-  @Field(() => Int, {
+  @Field(() => Number, {
     description: 'Amount remaining for guarantors to guarantee',
     nullable: true,
   })
