@@ -50,7 +50,7 @@ type Guarantor {
 }
 
 type Loan {
-  amount: Int!
+  amount: Float!
   amountPaid: Int!
   userId: ID!
   loanTypeId: ID!
@@ -89,7 +89,7 @@ type CreateLoanResponse {
   message: String!
 
   """Amount remaining for guarantors to guarantee"""
-  amountRemaining: Int
+  amountRemaining: Float
 }
 
 type CreateGuarantorResponse {

@@ -174,6 +174,10 @@ export class LoansService {
         const amountAfterInterest =
           initializeLoan.amount * (1 - loanType.interestRate / 100);
 
+        if (initializeLoan.amount > maxLoanable) {
+          throw new Error(`Sorry! You can only get a loan upto ${maxLoanable}`);
+        }
+
         //this is guarantor loan...validation required
         const guarantorInfo: Guarantor = await this.cacheService.get(
           initializeLoan.token,
@@ -206,9 +210,7 @@ export class LoansService {
             amountRemaining,
           });
           message = 'Token verified, another token required!';
-          amountRemaining = Math.round(
-            amountRemainingForGuarantors - guarantorInfo.amount,
-          );
+          amountRemaining = amountRemainingForGuarantors - guarantorInfo.amount;
         } else if (amountRemainingForGuarantors === guarantorInfo.amount) {
           //amount fits perfectly
           loan = await this.createLoan({
@@ -406,8 +408,9 @@ export class LoansService {
         loan.amountRemaining - guarantorInfo.amount;
       //if amount is enough needed no other guarantor
       let message: string;
+      
 
-      if (amountRemainingAfterGuarantor == guarantorInfo.amount) {
+      if (amountRemainingAfterGuarantor === 0) {
         //create guarantor and update loan info
         loan = await this.loansRepo.findByIdAndUpdate(
           loan._id,
@@ -423,7 +426,7 @@ export class LoansService {
           },
         );
         message = 'Loan created successfully';
-      } else if (amountRemainingAfterGuarantor < guarantorInfo.amount) {
+      } else if (amountRemainingAfterGuarantor < 0 ){
         loan = await this.loansRepo.findByIdAndUpdate(
           loan._id,
           {
@@ -433,7 +436,7 @@ export class LoansService {
               amountRemaining: 0,
             },
             $inc: {
-              amount: guarantorInfo.amount - amountRemainingAfterGuarantor,
+              amount: -amountRemainingAfterGuarantor,
             },
           },
           {

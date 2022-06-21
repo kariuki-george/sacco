@@ -6,7 +6,7 @@ import { Types } from 'mongoose';
 @Schema({ timestamps: true })
 export class Loan {
   @Prop()
-  @Field(() => Int)
+  @Field(() => Number)
   amount: number;
   @Prop({ default: 0 })
   @Field(() => Int)
