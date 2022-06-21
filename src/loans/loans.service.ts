@@ -278,11 +278,13 @@ export class LoansService {
       if (loanType.guarantor) {
         //this is a guarantor loan
         //check if savings are enough
-        if (initializeLoan.amount > maxLoanable) {
+        if (initializeLoan.amount > userSavings.amountLoanable) {
           throw new BadRequestException({
             message: `You can only borrow upto ${maxLoanable}. Guarantor needed.`,
           });
         }
+        //c
+
         //savings enough
         //create loan bank
         loanBank = await this.createLoanBank(initializeLoan.userId);
