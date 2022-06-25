@@ -1,8 +1,4 @@
-import {
-  ArgumentMetadata,
-  BadRequestException,
-  ValidationPipe,
-} from '@nestjs/common';
+import { ArgumentMetadata, ValidationPipe } from '@nestjs/common';
 import { UserInputError } from 'apollo-server-express';
 
 export class GraphQlValidation extends ValidationPipe {
