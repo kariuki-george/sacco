@@ -7,13 +7,13 @@ export enum bankType {
   ESCROW = 'ESCROW',
   DEFAULT_SAVINGS = 'DEFAULT_SAVINGS',
   MPESA = 'MPESA',
-  LOAN="LOAN"
+  LOAN = 'LOAN',
 }
 
 @Schema()
 @ObjectType()
 export class Bank {
-  @Field(()=>ID)
+  @Field(() => ID)
   _id: Types.ObjectId;
   @Field(() => Boolean)
   @Prop({ type: Boolean, default: false })
@@ -26,9 +26,7 @@ export class Bank {
   amount: number;
   @Field(() => ID)
   @Prop()
-  accountId: mongoose.Schema.Types.ObjectId;
-
-  
+  accountId: Types.ObjectId;
 }
 
 export type BankDocument = Bank & Document;

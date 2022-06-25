@@ -139,6 +139,8 @@ type Mutation {
 
   """This mutation is two be used to verify the second guarantor onwards"""
   postLoanInitialization(validateGuarantor: PostLoanInitializationDto!): CreateLoanResponse!
+  transferLoanToEscrow(loanId: String!): String!
+  payloan(payloan: PayLoanDto!): Loan!
   login(loginDto: LoginDto!): LoginResponse!
 }
 
@@ -200,6 +202,11 @@ input CreateLoanDto {
 input PostLoanInitializationDto {
   loanId: ID!
   token: String!
+}
+
+input PayLoanDto {
+  loanId: ID!
+  amount: Float!
 }
 
 input LoginDto {

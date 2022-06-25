@@ -10,6 +10,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, userRole } from './entities/user.entity';
 import * as argon from 'argon2';
+import { createUserResponse } from './res/createUser.res';
 
 @Injectable()
 export class UsersService {
@@ -18,7 +19,7 @@ export class UsersService {
 
     private readonly accountsQueueProducerService: AccountsProducerService,
   ) {}
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<createUserResponse> {
     const { password } = createUserDto;
     const hash = await argon.hash(password);
 
@@ -31,9 +32,11 @@ export class UsersService {
       await this.accountsQueueProducerService.accountCreate(
         new Types.ObjectId(user._id),
       );
-      return user;
+      return { user };
     } catch (error) {
-      throw new BadRequestException(error.message);
+      return {
+        errors: error.message,
+      };
     }
   }
 

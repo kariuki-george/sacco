@@ -2,6 +2,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import { Types } from 'mongoose';
+import { PayLoanDto } from 'src/loans/dto/payLoan.dto';
 import { TransferFundsDto } from 'src/loans/dto/transferFunds.dto';
 import { FreezeSavingsDto } from 'src/savings/dto/freezeSavings.dto';
 
@@ -25,5 +26,11 @@ export class LoansProducerService {
   }
   transferFunds(transferFunds: TransferFundsDto) {
     return this.loansQueue.add('bank-transferFunds', transferFunds);
+  }
+  transferLoanToEscrow(id: Types.ObjectId) {
+    return this.loansQueue.add('bank-transferLoanToEscrow', { id });
+  }
+  payloan(payLoan: PayLoanDto){
+    return this.loansQueue.add("bank-payLoan", payLoan)
   }
 }

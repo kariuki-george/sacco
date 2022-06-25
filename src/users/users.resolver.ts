@@ -5,6 +5,7 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { User } from './entities/user.entity';
 import { AdminAuthGuard } from 'src/auth/guards/admin-guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { createUserResponse } from './res/createUser.res';
 
 @Resolver()
 export class UsersResolver {
@@ -13,7 +14,7 @@ export class UsersResolver {
   @Mutation(() => User)
   createUser(
     @Args('createUserDto') createUserDto: CreateUserDto,
-  ): Promise<User> {
+  ): Promise<createUserResponse> {
     return this.usersService.create(createUserDto);
   }
   @Mutation(() => User)

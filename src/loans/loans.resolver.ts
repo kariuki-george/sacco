@@ -12,6 +12,8 @@ import { CreateLoanResponse } from './res/createLoan.res';
 import { CreateLoanDto } from './dto/create-loan.dto';
 import { PostLoanInitializationDto } from './dto/postLoanInitialization.dto';
 import { GetAllLoansResponse } from './res/getAllLoans';
+import { PayLoanDto } from './dto/payLoan.dto';
+import { Loan } from './entities/loan.entity';
 
 @Resolver()
 export class LoansResolver {
@@ -72,10 +74,24 @@ export class LoansResolver {
     });
   }
   @UseGuards(JwtAuthGuard)
-  @Query(()=>GetAllLoansResponse)
+  @Query(() => GetAllLoansResponse)
   getAllLoansByUserId(
     @Args('userId') id: string,
   ): Promise<GetAllLoansResponse> {
     return this.loansService.getAllLoansByUserId(new Types.ObjectId(id));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Mutation(() => String)
+  transferLoanToEscrow(@Args('loanId') id: string): Promise<string> {
+    return this.loansService.transferLoanToEscrow(new Types.ObjectId(id));
+  }
+  @UseGuards(JwtAuthGuard)
+  @Mutation(() => Loan)
+  payloan(@Args('payloan') payloan: PayLoanDto): Promise<Loan> {
+    return this.loansService.payLoan({
+      ...payloan,
+      loanId: new Types.ObjectId(payloan.loanId),
+    });
   }
 }

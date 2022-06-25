@@ -4,7 +4,9 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { Linter } from 'eslint';
 import { Model, Types } from 'mongoose';
+import { PayLoanDto } from 'src/loans/dto/payLoan.dto';
 import { TransferFundsDto } from 'src/loans/dto/transferFunds.dto';
 import { DepositIntoSavingAccountDto } from 'src/savings/dto/deposit-saving.dto';
 import { CreateBankDto } from './dto/create-bank.dto';
@@ -257,13 +259,11 @@ export class BankService {
 
     bank = await this.bankRepo.findOneAndUpdate(
       {
-      
-          accountId: transferFunds.guarantorUserId
-            ? transferFunds.guarantorUserId
-            : transferFunds.userId,
-          default: false,
-          type: bankType.DEFAULT_SAVINGS,
-      
+        accountId: transferFunds.guarantorUserId
+          ? transferFunds.guarantorUserId
+          : transferFunds.userId,
+        default: false,
+        type: bankType.DEFAULT_SAVINGS,
       },
       { $inc: { amount: -transferFunds.amount } },
     );
@@ -287,7 +287,74 @@ export class BankService {
         amount: transferFunds.amount,
       },
     });
-    
+
     return bank;
+  }
+  async transferLoanToEscrow(id: Types.ObjectId): Promise<Bank> {
+    //update loanbank id
+    //use the value before update--> new:false
+    const loanBank = await this.bankRepo.findByIdAndUpdate(id, {
+      $set: {
+        amount: 0,
+      },
+    });
+    //update bankEscrow
+    const escrowBank = await this.bankRepo.findByIdAndUpdate(
+      loanBank.accountId,
+      {
+        $inc: {
+          amount: loanBank.amount,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+    //save transaction
+    await this.transaction({
+      amount: loanBank.amount,
+      fromId: loanBank._id,
+      toId: escrowBank._id,
+      type: transactionType.INDEPOSIT,
+      userId: loanBank.accountId,
+      from: bankType.LOAN,
+      to: bankType.ESCROW,
+      status: transactionStatus.ACCEPTED,
+    });
+    return escrowBank;
+  }
+  async payLoan(payLoan: PayLoanDto): Promise<Bank> {
+    //check if escrow is enough
+    let loanBank = await this.bankRepo.findById(payLoan.loanId);
+    let escrow = await this.findEscrow(loanBank.accountId);
+    if (escrow.amount < payLoan.amount) {
+      throw new BadRequestException(`Your escrow is only ${escrow.amount}`);
+    }
+
+    //transfer funds
+    loanBank = await this.bankRepo.findByIdAndUpdate(loanBank._id, {
+      $inc: {
+        amount: payLoan.amount,
+      },
+    });
+    //
+    await this.bankRepo.findByIdAndUpdate(escrow._id, {
+      $inc: {
+        amount: -payLoan.amount,
+      },
+    });
+
+    //save transaction
+    await this.transaction({
+      amount: payLoan.amount,
+      fromId: escrow._id,
+      toId: loanBank._id,
+      type: transactionType.INWITHDRAW,
+      userId: loanBank.accountId,
+      from: bankType.ESCROW,
+      to: bankType.LOAN,
+      status: transactionStatus.ACCEPTED,
+    });
+    return loanBank;
   }
 }
