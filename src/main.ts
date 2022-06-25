@@ -5,7 +5,7 @@ import { GraphQlValidation } from 'lib/validator.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  //app.enableCors();
   //app.use(helmet());
   app.useGlobalPipes(new GraphQlValidation());
 
