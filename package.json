@@ -44,7 +44,6 @@
     "graphql": "^16.5.0",
     "helmet": "^5.1.0",
     "mongoose": "^6.3.6",
-    "nanoid": "^4.0.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
