@@ -31,6 +31,7 @@ import { Bank } from 'src/bank/entities/bank.entity';
 import { FreezeSavingsDto } from '../savings/dto/freezeSavings.dto';
 import { GetAllLoansResponse } from './res/getAllLoans';
 import { TransferFundsDto } from './dto/transferFunds.dto';
+import { PayLoanDto } from './dto/payLoan.dto';
 
 @Injectable()
 export class LoansService {
@@ -408,7 +409,6 @@ export class LoansService {
         loan.amountRemaining - guarantorInfo.amount;
       //if amount is enough needed no other guarantor
       let message: string;
-      
 
       if (amountRemainingAfterGuarantor === 0) {
         //create guarantor and update loan info
@@ -426,7 +426,7 @@ export class LoansService {
           },
         );
         message = 'Loan created successfully';
-      } else if (amountRemainingAfterGuarantor < 0 ){
+      } else if (amountRemainingAfterGuarantor < 0) {
         loan = await this.loansRepo.findByIdAndUpdate(
           loan._id,
           {
@@ -513,5 +513,66 @@ export class LoansService {
       loans,
       guarantorLoans,
     };
+  }
+
+  async transferLoanToEscrow(id: Types.ObjectId): Promise<string> {
+    try {
+      //update loan and set it nonWIthdrawable
+      const loan = await this.loansRepo.findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            canWithdraw: false,
+          },
+        },
+        {
+          new: true,
+        },
+      );
+
+      //transfer funds ffrom loan bank to escrow bank
+      const res = await this.loansProducerService.transferLoanToEscrow(
+        loan.bankId,
+      );
+      const transfer = await res.finished();
+      return 'Successfully transferred the money';
+    } catch (error) {
+      throw new InternalServerErrorException(
+        error.message || error.response.message,
+      );
+    }
+  }
+  async payLoan(payLoanDto: PayLoanDto): Promise<Loan> {
+    try {
+      //get loan
+      let loan = await this.loansRepo.findById(payLoanDto.loanId);
+
+      //transfer from escrow to loan
+
+      //update bank
+      //for loanId..ubstitute it for loanBankId
+      const payLoan = await this.loansProducerService.payloan({
+        amount: payLoanDto.amount,
+        loanId: loan.bankId,
+      });
+      await payLoan.finished();
+      //update loan
+      loan = await this.loansRepo.findByIdAndUpdate(
+        payLoanDto.loanId,
+        {
+          $inc: {
+            amountPaid: payLoanDto.amount,
+          },
+        },
+        {
+          new: true,
+        },
+      );
+      return loan;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        error.message || error.response.message,
+      );
+    }
   }
 }
