@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
-import { GraphQlValidation } from 'lib/validator.pipe';
+import { GraphQlValidation } from 'src/lib/validator.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
