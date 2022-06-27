@@ -113,6 +113,7 @@ export class LoansService {
   createLoan(createLoan: CreateLoanDto): Promise<Loan> {
     const loan = new this.loansRepo(createLoan);
     return loan.save();
+
   }
 
   async fetchSavings(userId: Types.ObjectId): Promise<Savings> {

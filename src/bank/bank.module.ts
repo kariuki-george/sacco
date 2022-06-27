@@ -8,6 +8,7 @@ import { SavingsConsumerService } from './consumers/savings.consumer';
 import { AccountsConsumerService } from './consumers/accounts.cosumer';
 import { Transaction, TransactionSchema } from './entities/transaction.entity';
 import { LoansConsumerService } from './consumers/loans.consumer';
+import { BankController } from './bank.controller';
 
 @Module({
   providers: [
@@ -30,5 +31,6 @@ import { LoansConsumerService } from './consumers/loans.consumer';
     ]),
     BullQueueModule,
   ],
+  controllers:[BankController]
 })
 export class BankModule {}

@@ -1,9 +1,14 @@
 import {
   BadRequestException,
+  CACHE_MANAGER,
+  Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
+import axios from 'axios';
+import { Cache } from 'cache-manager';
 import { Linter } from 'eslint';
 import { Model, Types } from 'mongoose';
 import { PayLoanDto } from 'src/loans/dto/payLoan.dto';
@@ -25,6 +30,8 @@ export class BankService {
   constructor(
     @InjectModel(Bank.name) private bankRepo: Model<Bank>,
     @InjectModel(Transaction.name) private transactionRepo: Model<Transaction>,
+    private readonly configService: ConfigService,
+    @Inject(CACHE_MANAGER) private readonly cacheService: Cache,
   ) {}
   create(createBankDto: CreateBankDto) {
     const newBank = new this.bankRepo(createBankDto);
@@ -357,4 +364,112 @@ export class BankService {
     });
     return loanBank;
   }
+
+  async mpesaDeposit(outDeposit) {
+    const Timestamp = this.getTimestamp();
+    const body = {
+      BusinessShortCode: 174379,
+      Password: Buffer.from(
+        `${this.configService.get('PARTYB')}${this.configService.get(
+          'PASSKEY',
+        )}${Timestamp}`,
+      ).toString('base64'),
+
+      TransactionType: 'CustomerPayBillOnline',
+      Amount: outDeposit.amount,
+      PartyA: outDeposit.phoneNumber,
+      PartyB: this.configService.get('PARTYB'),
+      PhoneNumber: Number(outDeposit.phoneNumber),
+      CallBackURL: this.configService.get('URL') + '/bank/mpesa/callback',
+      AccountReference: 'esacco',
+      TransactionDesc: 'deposit',
+      Timestamp,
+    };
+
+    const { data } = await this.getAccessToken();
+    const { access_token } = data;
+
+    try {
+      const response = await axios.post(
+        this.configService.get('MPESA_EXPRESS_LINK'),
+        body,
+        {
+          headers: {
+            Authorization: 'Bearer ' + access_token,
+          },
+        },
+      );
+
+      const CheckoutRequestId = response.data.CheckoutRequestID;
+      await this.cacheService.set(
+        CheckoutRequestId,
+        {
+          userId: outDeposit.userId,
+          amount: outDeposit.amount,
+          phoneNumber: outDeposit.phoneNumber,
+        },
+        {
+          ttl: 1000 * 60 * 60,
+        },
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new BadRequestException(error.message || error.response.message);
+    }
+  }
+
+  getAccessToken() {
+    const url = this.configService.get('MPESA_CLIENT_CREDENTIALS');
+    const auth =
+      'Basic ' +
+      Buffer.from(
+        this.configService.get('CONSUMER_KEY') +
+          ':' +
+          this.configService.get('CONSUMER_SECRET'),
+      ).toString('base64');
+
+    return axios.get(url, {
+      headers: {
+        Authorization: auth,
+      },
+    });
+  }
+
+  getTimestamp = () => {
+    let now = new Date();
+    let yr = now.getFullYear();
+    let mth = now.getMonth() + 1;
+    let dy = now.getDate();
+    let hr: string = now.getHours().toString();
+    let min = now.getMinutes().toString();
+    let sec = now.getSeconds().toString();
+    let mm = mth < 10 ? '0' + mth : mth;
+    let dd = dy < 10 ? '0' + dy : dy;
+    hr = parseInt(hr) < 10 ? '0' + hr : hr;
+    min = parseInt(min) < 10 ? '0' + min : min;
+    sec = parseInt(sec) < 10 ? '0' + sec : sec;
+    return '' + yr + mm + dd + hr + min + sec;
+  };
+  mpesaCallback = async (callBack) => {
+    if (callBack.Body.stkCallback.ResultCode == 0) {
+      const data: {
+        amount: number;
+        userId: Types.ObjectId;
+        phoneNumber: number;
+      } = await this.cacheService.get(
+        callBack.Body.stkCallback.CheckoutRequestID,
+      );
+
+      this.outDeposit({
+        ...data,
+        amount: data.amount * 1000,
+        userId: new Types.ObjectId(data.userId),
+      });
+      await this.cacheService.del(callBack.Body.stkCallback.CheckoutRequestID);
+      return;
+    } else {
+      await this.cacheService.del(callBack.Body.stkCallback.CheckoutRequestID);
+    }
+  };
 }
