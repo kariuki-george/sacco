@@ -11,16 +11,16 @@ async function bootstrap() {
   app.enableCors();
   //app.use(helmet());
   //app.useGlobalPipes(new GraphQlValidation());
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      exceptionFactory: (errors: ValidationError[]) => {
-        return new UserInputError('VALIDATION_ERROR', {
-          invalidArgs: errors,
-        });
-      },
-    }),
-  );
+  // app.useGlobalPipes(
+  //   new ValidationPipe({
+  //     transform: true,
+  //     exceptionFactory: (errors: ValidationError[]) => {
+  //       return new UserInputError('VALIDATION_ERROR', {
+  //         invalidArgs: errors,
+  //       });
+  //     },
+  //   }),
+  // );
   await app.listen(parseInt(process.env.PORT) || 3000);
 }
 bootstrap();

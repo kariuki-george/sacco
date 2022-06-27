@@ -16,5 +16,5 @@ export class DepositIntoSavingAccountDto {
   @IsNotEmpty()
   savingsId: Types.ObjectId;
   @Field(() => ID, { nullable: true })
-  bankId: mongoose.Schema.Types.ObjectId;
+  bankId: Types.ObjectId;
 }

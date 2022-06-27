@@ -42,36 +42,36 @@ import { GraphQLFormattedError } from 'graphql/error';
       introspection: true,
 
       context: ({ req, res }) => ({ req, res }),
-      formatError: (error) => {
-        if (error.message === 'VALIDATION_ERROR') {
-          const extensions = {
-            code: 'VALIDATION_ERROR',
-            errors: [],
-          };
-          Object.keys(error.extensions.invalidArgs).forEach((key) => {
-            const constraints = [];
-            Object.keys(error.extensions.invalidArgs[key].constraints).forEach(
-              (_key) => {
-                constraints.push(
-                  error.extensions.invalidArgs[key].constraints[_key],
-                );
-              },
-            );
+      // formatError: (error) => {
+      //   if (error.message === 'VALIDATION_ERROR') {
+      //     const extensions = {
+      //       code: 'VALIDATION_ERROR',
+      //       errors: [],
+      //     };
+      //     Object.keys(error.extensions.invalidArgs).forEach((key) => {
+      //       const constraints = [];
+      //       Object.keys(error.extensions.invalidArgs[key].constraints).forEach(
+      //         (_key) => {
+      //           constraints.push(
+      //             error.extensions.invalidArgs[key].constraints[_key],
+      //           );
+      //         },
+      //       );
 
-            extensions.errors.push({
-              field: error.extensions.invlidArgs[key].property,
-              errors: constraints,
-            });
-          });
-          const graphQlFormattedError: GraphQLFormattedError = {
-            message: 'Validation_Error',
-            extensions,
-          };
-          return graphQlFormattedError;
-        } else {
-          return error;
-        }
-      },
+      //       extensions.errors.push({
+      //         field: error.extensions.invlidArgs[key].property,
+      //         errors: constraints,
+      //       });
+      //     });
+      //     const graphQlFormattedError: GraphQLFormattedError = {
+      //       message: 'Validation_Error',
+      //       extensions,
+      //     };
+      //     return graphQlFormattedError;
+      //   } else {
+      //     return error;
+      //   }
+      // },
     }),
     CacheModule.register({
       isGlobal: true,

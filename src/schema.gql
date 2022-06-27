@@ -38,7 +38,6 @@ type Transaction {
   toId: ID!
   fromId: ID!
   status: String!
-  requestId: String!
   userId: ID!
 }
 
