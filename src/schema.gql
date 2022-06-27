@@ -118,6 +118,7 @@ type Query {
   getAllLoanTypes: [LoanType!]!
   getLoanTypeId(loanTypeId: String!): LoanType!
   getAllLoansByUserId(userId: String!): GetAllLoansResponse!
+  getTotalLoans: Int!
 }
 
 type Mutation {
