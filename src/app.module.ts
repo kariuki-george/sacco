@@ -14,6 +14,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 
+import { GraphQLFormattedError } from 'graphql/error';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -34,15 +36,45 @@ import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
     AuthModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      plugins:[ApolloServerPluginLandingPageLocalDefault],
-      playground: false,
+      //plugins: [ApolloServerPluginLandingPageLocalDefault],
+      playground: true,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       introspection: true,
 
       context: ({ req, res }) => ({ req, res }),
+      formatError: (error) => {
+        if (error.message === 'VALIDATION_ERROR') {
+          const extensions = {
+            code: 'VALIDATION_ERROR',
+            errors: [],
+          };
+          Object.keys(error.extensions.invalidArgs).forEach((key) => {
+            const constraints = [];
+            Object.keys(error.extensions.invalidArgs[key].constraints).forEach(
+              (_key) => {
+                constraints.push(
+                  error.extensions.invalidArgs[key].constraints[_key],
+                );
+              },
+            );
+
+            extensions.errors.push({
+              field: error.extensions.invlidArgs[key].property,
+              errors: constraints,
+            });
+          });
+          const graphQlFormattedError: GraphQLFormattedError = {
+            message: 'Validation_Error',
+            extensions,
+          };
+          return graphQlFormattedError;
+        } else {
+          return error;
+        }
+      },
     }),
     CacheModule.register({
-      isGlobal:true
+      isGlobal: true,
     }),
   ],
 
