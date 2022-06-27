@@ -1,5 +1,5 @@
 import { LoansService } from './loans.service';
-import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
+import { Args, Mutation, Resolver, Query, Int } from '@nestjs/graphql';
 import { CreateGuarantorDto } from './dto/createGuarantor.dto';
 import { Types } from 'mongoose';
 import { UseGuards } from '@nestjs/common';
@@ -93,5 +93,11 @@ export class LoansResolver {
       ...payloan,
       loanId: new Types.ObjectId(payloan.loanId),
     });
+  }
+
+  //@UseGuards(JwtAuthGuard)
+  @Query(() => Int)
+  getTotalLoans(): Promise<number> {
+    return this.loansService.getAllLoans();
   }
 }

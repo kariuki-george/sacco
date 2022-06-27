@@ -113,7 +113,6 @@ export class LoansService {
   createLoan(createLoan: CreateLoanDto): Promise<Loan> {
     const loan = new this.loansRepo(createLoan);
     return loan.save();
-
   }
 
   async fetchSavings(userId: Types.ObjectId): Promise<Savings> {
@@ -138,6 +137,14 @@ export class LoansService {
   async transferFunds(transferFunds: TransferFundsDto): Promise<Bank> {
     const res = await this.loansProducerService.transferFunds(transferFunds);
     return res.finished();
+  }
+
+  async getAllLoans(): Promise<number> {
+    const count: { sum: number; _id: null }[] = await this.loansRepo
+      .aggregate([{ $group: { _id: null, sum: { $sum: '$amount' } } }])
+      .exec();
+
+    return count[0].sum;
   }
 
   async initializeLoan(
