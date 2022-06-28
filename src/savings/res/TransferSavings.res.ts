@@ -1,12 +1,7 @@
 import { Field, ObjectType } from '@nestjs/graphql';
+import { Errorr } from 'src/lib/error.interface';
 
-@ObjectType()
-class Errorr {
-  @Field(() => String)
-  error: boolean;
-  @Field(() => String)
-  message: string;
-}
+
 
 @ObjectType()
 export class TransferSavingsToEscrowResponse {

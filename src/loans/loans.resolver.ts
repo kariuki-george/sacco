@@ -96,7 +96,7 @@ export class LoansResolver {
   }
 
   //@UseGuards(JwtAuthGuard)
-  @Query(() => Int, {nullable:true} )
+  @Query(() => Number, {nullable:true} )
   getTotalLoans(): Promise<number> {
     return this.loansService.getAllLoans();
   }

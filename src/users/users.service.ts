@@ -19,7 +19,7 @@ export class UsersService {
 
     private readonly accountsQueueProducerService: AccountsProducerService,
   ) {}
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<createUserResponse> {
     const { password } = createUserDto;
     const hash = await argon.hash(password);
 
@@ -30,9 +30,14 @@ export class UsersService {
       });
       const user = await newUser.save();
       await this.accountsQueueProducerService.accountCreate(user._id);
-      return user;
+      return { user };
     } catch (error) {
-      throw new BadRequestException(error.message || error.response.message);
+      return {
+        errors: {
+          error: true,
+          message: error.message || error.response.message,
+        },
+      };
     }
   }
 
