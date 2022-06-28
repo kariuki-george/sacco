@@ -1,10 +1,10 @@
 import { Process, Processor } from '@nestjs/bull';
-import { Types } from 'mongoose';
+
 import { SavingsService } from '../savings.service';
 import { Job } from 'bull';
 
 interface T {
-  id: Types.ObjectId;
+  id: string;
 }
 @Processor('accounts')
 export class AccountsSavingsConsumerService {
@@ -13,6 +13,7 @@ export class AccountsSavingsConsumerService {
   @Process('account-created')
   async createDefaultSavingAccount(job: Job<T>) {
     const { id } = job.data;
-    return this.savingsService.createDefaultSavingsAccount(id);
+   
+    return this.savingsService.createDefaultSavingsAccount((id));
   }
 }

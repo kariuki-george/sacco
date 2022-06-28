@@ -1,11 +1,11 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import { Types } from 'mongoose';
+
 import { DepositIntoSavingAccountDto } from 'src/savings/dto/deposit-saving.dto';
 import { BankService } from '../bank.service';
 
 interface T {
-  id: Types.ObjectId;
+  id: string;
 }
 
 @Processor('savings')
@@ -44,8 +44,15 @@ export class SavingsConsumerService {
   }
 
   @Process("saving-depositIntoSaccoSavingsAccount")
-  async depositIntoSaccoBankAccount(depositIntoSaccoBankAccount:Job<DepositIntoSavingAccountDto>){
+   depositIntoSaccoBankAccount(depositIntoSaccoBankAccount:Job<DepositIntoSavingAccountDto>){
     return this.bankService.depositIntoSaccoBankAccount(depositIntoSaccoBankAccount.data)
 
   }
+
+  @Process("saving-transferSavingsToEscrow")
+  transferSavingsToEscrow(job:Job<T>){
+    
+    return this.bankService.transferSavingsToEscrow(job.data.id)
+  }
+
 }

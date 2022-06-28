@@ -1,6 +1,6 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import  { Types } from 'mongoose';
+
 import { bankType } from './bank.entity';
 
 export enum transactionStatus {
@@ -32,10 +32,10 @@ export class Transaction {
   to: bankType;
   @Field(() => ID)
   @Prop()
-  toId: Types.ObjectId;
+  toId: string;
   @Field(() => ID)
   @Prop()
-  fromId: Types.ObjectId;
+  fromId: string;
   @Prop()
   @Field(() => String)
   status: transactionStatus;
@@ -44,7 +44,7 @@ export class Transaction {
   requestId: string;
   @Field(() => ID)
   @Prop()
-  userId: Types.ObjectId;
+  userId: string;
 }
 
 export type TransactionDocument = Transaction & Document;

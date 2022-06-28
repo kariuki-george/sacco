@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { Bank } from 'src/bank/entities/bank.entity';
 import { SavingsProducerService } from 'src/bull/savings.producer.service';
 import { FreezeSavingsDto } from 'src/savings/dto/freezeSavings.dto';
 import { CreateSavingDto } from './dto/create-saving.dto';
@@ -12,6 +13,7 @@ import { CreateNormalSavingDto } from './dto/createNormalSaving.dto';
 import { DepositIntoSavingAccountDto } from './dto/deposit-saving.dto';
 import { UpdateSavingDto } from './dto/update-saving.dto';
 import { Savings, savingsType } from './entities/saving.entity';
+import { TransferSavingsToEscrowResponse } from './res/TransferSavings.res';
 
 @Injectable()
 export class SavingsService {
@@ -28,7 +30,7 @@ export class SavingsService {
     }
   }
 
-  async createSaccoSavingsAccount(id: Types.ObjectId) {
+  async createSaccoSavingsAccount(id: string) {
     const res = await this.savingsProducerService.createSaccoSavingAccount(id);
     const bank = await res.finished();
     const createSavingDto: CreateSavingDto = {
@@ -44,7 +46,7 @@ export class SavingsService {
     return await this.create(createSavingDto);
   }
 
-  async createDefaultSavingsAccount(id: Types.ObjectId) {
+  async createDefaultSavingsAccount(id: string) {
     const res = await this.savingsProducerService.createDefaultSavingAccount(
       id,
     );
@@ -92,13 +94,13 @@ export class SavingsService {
     return this.savingsRepo.find().exec();
   }
 
-  findById(id: Types.ObjectId): Promise<Savings> {
+  findById(id: string): Promise<Savings> {
     return this.savingsRepo.findById(id).exec();
   }
-  findAllByUserId(id: Types.ObjectId): Promise<Savings[]> {
+  findAllByUserId(id: string): Promise<Savings[]> {
     return this.savingsRepo.find({ userId: id }).exec();
   }
-  findOne(userId: Types.ObjectId): Promise<Savings> {
+  findOne(userId: string): Promise<Savings> {
     return this.savingsRepo
       .findOne({
         userId,
@@ -174,7 +176,7 @@ export class SavingsService {
     }
   }
 
-  async update(id: Types.ObjectId, updateSavingDto: UpdateSavingDto) {
+  async update(id: string, updateSavingDto: UpdateSavingDto) {
     return await this.savingsRepo.findByIdAndUpdate(
       id,
       {
@@ -197,5 +199,28 @@ export class SavingsService {
         { new: true },
       )
       .exec();
+  }
+
+  async transferSavingsToEscrow(
+    id: string,
+  ): Promise<TransferSavingsToEscrowResponse> {
+    const savings = await this.savingsRepo.findById(new Types.ObjectId(id));
+
+    if (savings.type === savings.name) {
+      return {
+        error: {
+          message: 'Cannot tranfer this type of loan',
+          error: true,
+        },
+      };
+    }
+    const res = await this.savingsProducerService.transferSavingsToEscrow(
+      savings.bankId,
+    );
+    await res.finished();
+
+    await savings.delete();
+
+    return { message: 'Successfully transferred money to escrow' };
   }
 }

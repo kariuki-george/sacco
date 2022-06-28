@@ -1,4 +1,3 @@
-import { Types } from 'mongoose';
 import { bankType } from '../entities/bank.entity';
 import {
   transactionStatus,
@@ -9,10 +8,10 @@ export class TransactionDto {
   amount: number;
   status: transactionStatus;
   type: transactionType;
-  toId: Types.ObjectId;
+  toId: string;
   to: bankType;
   from: bankType;
-  fromId: Types.ObjectId;
+  fromId: string;
   receiptId?: string;
-  userId: Types.ObjectId
+  userId: string
 }

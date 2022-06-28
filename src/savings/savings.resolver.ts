@@ -1,13 +1,14 @@
 import { UseGuards } from '@nestjs/common';
 import { SavingsService } from './savings.service';
 
-import { Types } from 'mongoose';
+
 import { DepositIntoSavingAccountDto } from './dto/deposit-saving.dto';
 import { CreateNormalSavingDto } from './dto/createNormalSaving.dto';
 import { Resolver, Query, Args, Mutation, Int } from '@nestjs/graphql';
 import { Savings } from './entities/saving.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AdminAuthGuard } from 'src/auth/guards/admin-guard';
+import { TransferSavingsToEscrowResponse} from './res/TransferSavings.res';
 
 @Resolver()
 export class SavingsResolver {
@@ -22,18 +23,18 @@ export class SavingsResolver {
   @UseGuards(JwtAuthGuard)
   @Query(() => Savings)
   findOne(@Args('id') id: string): Promise<Savings> {
-    return this.savingsService.findOne(new Types.ObjectId(id));
+    return this.savingsService.findOne((id));
   }
   @UseGuards(JwtAuthGuard)
-  @Query(() => Int)
-  getTotalSaving(): Promise<Number> {
+  @Query(() => Int , {nullable:true})
+  getTotalSavings(): Promise<Number> {
     return this.savingsService.findTotalSavings();
   }
 
   @UseGuards(JwtAuthGuard)
   @Query(() => [Savings])
   getSavingsByUserId(@Args('id') id: string): Promise<Savings[]> {
-    return this.savingsService.findAllByUserId(new Types.ObjectId(id));
+    return this.savingsService.findAllByUserId((id));
   }
   @UseGuards(JwtAuthGuard)
   @Mutation(() => Savings)
@@ -43,8 +44,8 @@ export class SavingsResolver {
   ) {
     return this.savingsService.depositIntoSavingAccount({
       ...depositIntoSavingAccountDto,
-      userId: new Types.ObjectId(depositIntoSavingAccountDto.userId),
-      savingsId: new Types.ObjectId(depositIntoSavingAccountDto.savingsId),
+      userId: (depositIntoSavingAccountDto.userId),
+      savingsId: (depositIntoSavingAccountDto.savingsId),
     });
   }
   @UseGuards(JwtAuthGuard)
@@ -55,8 +56,8 @@ export class SavingsResolver {
   ) {
     return this.savingsService.depositIntoSaccoSavingAccount({
       ...depositIntoSavingAccountDto,
-      userId: new Types.ObjectId(depositIntoSavingAccountDto.userId),
-      savingsId: new Types.ObjectId(depositIntoSavingAccountDto.savingsId),
+      userId: (depositIntoSavingAccountDto.userId),
+      savingsId: (depositIntoSavingAccountDto.savingsId),
     });
   }
 
@@ -64,7 +65,7 @@ export class SavingsResolver {
   @Mutation(() => Savings)
   createSacco(@Args('id') id: string): Promise<Savings> {
     return this.savingsService.createSaccoSavingsAccount(
-      new Types.ObjectId(id),
+      (id),
     );
   }
   @UseGuards(JwtAuthGuard)
@@ -73,5 +74,12 @@ export class SavingsResolver {
     @Args('createNormalSaving') createNormalSaving: CreateNormalSavingDto,
   ): Promise<Savings> {
     return this.savingsService.createNormalSavingsAccount(createNormalSaving);
+  }
+  
+
+  @UseGuards(JwtAuthGuard)
+  @Mutation(()=>TransferSavingsToEscrowResponse)
+  transferSavingsToEscrow(@Args("savingsId") id:string): Promise<TransferSavingsToEscrowResponse>{
+    return this.savingsService.transferSavingsToEscrow(id)
   }
 }

@@ -1,13 +1,12 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import { Types } from 'mongoose';
 import { PayLoanDto } from 'src/loans/dto/payLoan.dto';
 import { TransferFundsDto } from 'src/loans/dto/transferFunds.dto';
 import { BankService } from '../bank.service';
 import { Bank } from '../entities/bank.entity';
 
 interface T {
-  id: Types.ObjectId;
+  id: string;
 }
 
 @Processor('loans')

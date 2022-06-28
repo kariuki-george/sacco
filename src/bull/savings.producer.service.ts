@@ -1,27 +1,27 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Queue } from 'bull';
-import { Types } from 'mongoose';
+
 import { DepositIntoSavingAccountDto } from 'src/savings/dto/deposit-saving.dto';
 
 @Injectable()
 export class SavingsProducerService {
   constructor(@InjectQueue('savings') private savingsQueue: Queue) {}
-  async createDefaultSavingAccount(id: Types.ObjectId) {
+  async createDefaultSavingAccount(id: string) {
     try {
       return this.savingsQueue.add('saving-creation', { id });
     } catch (error) {
       throw new InternalServerErrorException(error);
     }
   }
-  async createSaccoSavingAccount(id: Types.ObjectId) {
+  async createSaccoSavingAccount(id: string) {
     try {
       return this.savingsQueue.add('saving-createSaccoSaving', { id });
     } catch (error) {
       throw new InternalServerErrorException(error);
     }
   }
-  async createNormalSavingAccount(id: Types.ObjectId) {
+  async createNormalSavingAccount(id: string) {
     try {
       return this.savingsQueue.add('saving-createNormalSaving', { id });
     } catch (error) {
@@ -37,11 +37,15 @@ export class SavingsProducerService {
     });
   }
 
-  async depositIntoSaccoSavingAccount(
+  depositIntoSaccoSavingAccount(
     depositIntoSaccoSavingAccount: DepositIntoSavingAccountDto,
   ) {
     return this.savingsQueue.add('saving-depositIntoSaccoSavingsAccount', {
       ...depositIntoSaccoSavingAccount,
     });
+  }
+
+  transferSavingsToEscrow(id: string) {
+    return this.savingsQueue.add('saving-transferSavingsToEscrow', { id });
   }
 }

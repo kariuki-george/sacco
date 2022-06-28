@@ -1,6 +1,6 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+
 
 @ObjectType()
 @Schema({ timestamps: true })
@@ -13,10 +13,10 @@ export class Loan {
   amountPaid: number;
   @Field(() => ID)
   @Prop()
-  userId: Types.ObjectId;
+  userId: string;
   @Field(() => ID)
   @Prop()
-  loanTypeId: Types.ObjectId;
+  loanTypeId: string;
   @Field(() => Boolean)
   @Prop({ default: false })
   guarantor: boolean;
@@ -25,9 +25,9 @@ export class Loan {
   @Field(() => Boolean)
   processing: boolean;
   @Field(() => ID)
-  _id: Types.ObjectId;
+  _id: string;
   @Prop()
-  bankId: Types.ObjectId;
+  bankId: string;
   @Field(() => Boolean)
   @Prop({ default: false })
   canWithdraw: boolean;

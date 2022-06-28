@@ -1,6 +1,6 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Types } from 'mongoose';
+
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { BankService } from './bank.service';
 import { DepositDto } from './dto/deposit.dto';
@@ -14,16 +14,20 @@ export class BankResolver {
   @UseGuards(JwtAuthGuard)
   @Query(() => Bank)
   getEscrow(@Args('userId') id: string): Promise<Bank> {
-    return this.bankService.findEscrow(new Types.ObjectId(id));
+    console.log(id);
+    return this.bankService.findEscrow(id);
   }
   @UseGuards(JwtAuthGuard)
   @Mutation(() => Bank)
   outDeposit(@Args('outDeposit') outDeposit: DepositDto): Promise<Bank> {
-    return this.bankService.outDeposit(outDeposit);
+    return this.bankService.outDeposit({
+      ...outDeposit,
+      userId: outDeposit.userId,
+    });
   }
   @UseGuards(JwtAuthGuard)
   @Query(() => [Transaction])
   getUserTransactions(@Args('userId') id: string): Promise<Transaction[]> {
-    return this.bankService.getUserTransactions(new Types.ObjectId(id));
+    return this.bankService.getUserTransactions(id);
   }
 }

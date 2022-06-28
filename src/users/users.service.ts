@@ -4,14 +4,13 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { AccountsProducerService } from 'src/bull/accounts.producer.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, userRole } from './entities/user.entity';
 import * as argon from 'argon2';
 import { createUserResponse } from './res/createUser.res';
-import { UserInputError } from 'apollo-server-express';
 
 @Injectable()
 export class UsersService {
@@ -30,14 +29,10 @@ export class UsersService {
         password: hash,
       });
       const user = await newUser.save();
-      await this.accountsQueueProducerService.accountCreate(
-        new Types.ObjectId(user._id),
-      );
-      return  user ;
+      await this.accountsQueueProducerService.accountCreate(user._id);
+      return user;
     } catch (error) {
-      throw new UserInputError(error.message || error.response.message)
-      
-      
+      throw new BadRequestException(error.message || error.response.message);
     }
   }
 

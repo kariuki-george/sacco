@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
-import { Types } from 'mongoose';
+
 import { PayLoanDto } from 'src/loans/dto/payLoan.dto';
 import { TransferFundsDto } from 'src/loans/dto/transferFunds.dto';
 import { FreezeSavingsDto } from 'src/savings/dto/freezeSavings.dto';
@@ -10,15 +10,15 @@ import { FreezeSavingsDto } from 'src/savings/dto/freezeSavings.dto';
 export class LoansProducerService {
   constructor(@InjectQueue('loans') private loansQueue: Queue) {}
 
-  guarantorCreateChecks(id: Types.ObjectId) {
+  guarantorCreateChecks(id: string) {
     return this.loansQueue.add('guarantor-createCheck', {
       id,
     });
   }
-  getSavings(id: Types.ObjectId) {
+  getSavings(id: string) {
     return this.loansQueue.add('saving-getSavings', { id });
   }
-  createLoanBank(id: Types.ObjectId) {
+  createLoanBank(id: string) {
     return this.loansQueue.add('bank-createLoanBank', { id });
   }
   freezeSavingsAccount(freezeSavings: FreezeSavingsDto) {
@@ -27,7 +27,7 @@ export class LoansProducerService {
   transferFunds(transferFunds: TransferFundsDto) {
     return this.loansQueue.add('bank-transferFunds', transferFunds);
   }
-  transferLoanToEscrow(id: Types.ObjectId) {
+  transferLoanToEscrow(id: string) {
     return this.loansQueue.add('bank-transferLoanToEscrow', { id });
   }
   payloan(payLoan: PayLoanDto){

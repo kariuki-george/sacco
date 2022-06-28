@@ -1,6 +1,6 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import  { Types } from 'mongoose';
+
 
 export enum bankType {
   SAVINGS = 'SAVINGS',
@@ -14,7 +14,7 @@ export enum bankType {
 @ObjectType()
 export class Bank {
   @Field(() => ID)
-  _id: Types.ObjectId;
+  _id: string;
   @Field(() => Boolean)
   @Prop({ type: Boolean, default: false })
   default: boolean;
@@ -26,7 +26,7 @@ export class Bank {
   amount: number;
   @Field(() => ID)
   @Prop()
-  accountId: Types.ObjectId;
+  accountId: string;
 }
 
 export type BankDocument = Bank & Document;

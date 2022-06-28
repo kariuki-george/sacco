@@ -1,14 +1,14 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Queue } from 'bull';
-import { Types } from 'mongoose';
+
 import { InWithDrawDto } from 'src/bank/dto/inWithdraw.dto';
 
 @Injectable()
 export class BanksProducerService {
   constructor(@InjectQueue('banks') private bankQueue: Queue) {}
 
-  async newSavingsBank(bankId: Types.ObjectId, savingsId: Types.ObjectId) {
+  async newSavingsBank(bankId: string, savingsId: string) {
     try {
       await this.bankQueue.add('savingsBank-created', {
         bankId,

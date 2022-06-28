@@ -105,7 +105,7 @@ export class LoansService {
   getLoanTypes(): Promise<LoanType[]> {
     return this.loanTypesRepo.find().exec();
   }
-  getLoanTypeById(id: Types.ObjectId): Promise<LoanType> {
+  getLoanTypeById(id: string): Promise<LoanType> {
     return this.loanTypesRepo.findById(id).exec();
   }
 
@@ -115,12 +115,12 @@ export class LoansService {
     return loan.save();
   }
 
-  async fetchSavings(userId: Types.ObjectId): Promise<Savings> {
+  async fetchSavings(userId: string): Promise<Savings> {
     const savings = await this.loansProducerService.getSavings(userId);
     return savings.finished();
   }
 
-  async createLoanBank(userId: Types.ObjectId): Promise<Bank> {
+  async createLoanBank(userId: string): Promise<Bank> {
     const loan = await this.loansProducerService.createLoanBank(userId);
     return loan.finished();
   }
@@ -140,11 +140,15 @@ export class LoansService {
   }
 
   async getAllLoans(): Promise<number> {
-    const count: { sum: number; _id: null }[] = await this.loansRepo
-      .aggregate([{ $group: { _id: null, sum: { $sum: '$amount' } } }])
-      .exec();
+    try {
+      const count: { sum: number; _id: null }[] = await this.loansRepo
+        .aggregate([{ $group: { _id: null, sum: { $sum: '$amount' } } }])
+        .exec();
 
-    return count[0].sum;
+      return count[0].sum;
+    } catch (error) {
+      return 0;
+    }
   }
 
   async initializeLoan(
@@ -153,7 +157,7 @@ export class LoansService {
     try {
       //identify the loan type
       const loanType = await this.loanTypesRepo.findById(
-        initializeLoan.loanTypeId,
+        new Types.ObjectId(initializeLoan.loanTypeId),
       );
 
       //get userSavings
@@ -299,6 +303,7 @@ export class LoansService {
       if (loanType.guarantor) {
         //this is a guarantor loan
         //check if savings are enough
+        //console.log(maxLoanable);
         if (maxLoanable < loanAfterInterest) {
           throw new BadRequestException({
             message: `You can only borrow upto ${maxLoanable} but upto ${
@@ -510,9 +515,7 @@ export class LoansService {
     }
   }
 
-  async getAllLoansByUserId(
-    userId: Types.ObjectId,
-  ): Promise<GetAllLoansResponse> {
+  async getAllLoansByUserId(userId: string): Promise<GetAllLoansResponse> {
     //check current loans
     const loans = await this.loansRepo.find({ userId });
     //check guarantor loans
@@ -523,11 +526,11 @@ export class LoansService {
     };
   }
 
-  async transferLoanToEscrow(id: Types.ObjectId): Promise<string> {
+  async transferLoanToEscrow(id: string): Promise<string> {
     try {
       //update loan and set it nonWIthdrawable
       const loan = await this.loansRepo.findByIdAndUpdate(
-        id,
+        new Types.ObjectId(id),
         {
           $set: {
             canWithdraw: false,

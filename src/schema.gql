@@ -22,6 +22,16 @@ type Savings {
   amountLoanable: Float!
 }
 
+type Errorr {
+  error: String!
+  message: String!
+}
+
+type TransferSavingsToEscrowResponse {
+  message: String
+  error: Errorr
+}
+
 type Bank {
   _id: ID!
   default: Boolean!
@@ -111,14 +121,14 @@ type Query {
   getAllUsers: [User!]!
   getAllSavings: [Savings!]!
   findOne(id: String!): Savings!
-  getTotalSaving: Int!
+  getTotalSavings: Int
   getSavingsByUserId(id: String!): [Savings!]!
   getEscrow(userId: String!): Bank!
   getUserTransactions(userId: String!): [Transaction!]!
   getAllLoanTypes: [LoanType!]!
   getLoanTypeId(loanTypeId: String!): LoanType!
   getAllLoansByUserId(userId: String!): GetAllLoansResponse!
-  getTotalLoans: Int!
+  getTotalLoans: Int
 }
 
 type Mutation {
@@ -128,6 +138,7 @@ type Mutation {
   saveToSaccoAccount(depositIntoSavingAccountDto: DepositIntoSavingAccountDto!): Savings!
   createSacco(id: String!): Savings!
   createNormalSavingsAccount(createNormalSaving: CreateNormalSavingDto!): Savings!
+  transferSavingsToEscrow(savingsId: String!): TransferSavingsToEscrowResponse!
   outDeposit(outDeposit: DepositDto!): Bank!
   createGuarantor(createGurantor: CreateGuarantorDto!): CreateGuarantorResponse!
   createLoanType(createLoanType: CreateLoanTypeDto!): LoanType!

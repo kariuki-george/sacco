@@ -1,4 +1,3 @@
-import{ Types } from 'mongoose';
 import { savingsType } from '../entities/saving.entity';
 
 export class CreateSavingDto {
@@ -10,7 +9,7 @@ export class CreateSavingDto {
 
   frozen: boolean;
 
-  userId: Types.ObjectId;
-  bankId: Types.ObjectId | null;
+  userId: string;
+  bankId: string | null;
   default?: boolean;
 }

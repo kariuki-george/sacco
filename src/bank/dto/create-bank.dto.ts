@@ -1,4 +1,3 @@
-import { Types } from 'mongoose';
 import { bankType } from '../entities/bank.entity';
 
 
@@ -10,5 +9,5 @@ export class CreateBankDto {
 
   amount: number | 0;
 
-  accountId: Types.ObjectId;
+  accountId: string;
 }

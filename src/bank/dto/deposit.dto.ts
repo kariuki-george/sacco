@@ -1,6 +1,5 @@
 import { InputType, Field, ID, Int } from '@nestjs/graphql';
 import { IsNotEmpty, IsNumber, IsPositive } from 'class-validator';
-import { Types } from 'mongoose';
 
 @InputType()
 export class DepositDto {
@@ -11,7 +10,7 @@ export class DepositDto {
 
   @IsNotEmpty()
   @Field(() => ID)
-  userId: Types.ObjectId;
+  userId: string;
 
   @Field(() => Int, { nullable: true })
   phoneNumber: number;

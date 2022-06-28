@@ -1,5 +1,5 @@
 import { InputType, Field, ID, Int } from '@nestjs/graphql';
-import { Types } from 'mongoose';
+
 
 @InputType()
 export class DepositDto {
@@ -13,7 +13,7 @@ export class DepositDto {
   to: string;
 
   @Field(() => ID)
-  userId: Types.ObjectId;
+  userId: string;
   @Field(() => String)
   requestId?: string;
 }

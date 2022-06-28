@@ -1,11 +1,11 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import { Types } from 'mongoose';
+
 import { SavingsService } from '../savings.service';
 
 interface savingsBankInterface {
-  savingsId: Types.ObjectId;
-  bankId: Types.ObjectId;
+  savingsId: string;
+  bankId: string;
 }
 
 @Processor('savings')

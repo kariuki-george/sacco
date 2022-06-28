@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
 import { Cache } from 'cache-manager';
-import { Linter } from 'eslint';
+
 import { Model, Types } from 'mongoose';
 import { PayLoanDto } from 'src/loans/dto/payLoan.dto';
 import { TransferFundsDto } from 'src/loans/dto/transferFunds.dto';
@@ -39,7 +39,7 @@ export class BankService {
     return newBank.save();
   }
 
-  async createSavingsBankAccount(id: Types.ObjectId) {
+  async createSavingsBankAccount(id: string) {
     const newBank: CreateBankDto = {
       accountId: id,
       amount: 0,
@@ -53,7 +53,7 @@ export class BankService {
       throw new InternalServerErrorException(error);
     }
   }
-  async createEscrow(id: Types.ObjectId) {
+  async createEscrow(id: string) {
     return await this.create({
       accountId: id,
       amount: 0,
@@ -62,7 +62,7 @@ export class BankService {
     });
   }
 
-  async createSaccoSavingBankAccount(id: Types.ObjectId) {
+  async createSaccoSavingBankAccount(id: string) {
     return await this.create({
       accountId: id,
       amount: 0,
@@ -71,7 +71,7 @@ export class BankService {
     });
   }
 
-  async createNormalSavingBankAccount(id: Types.ObjectId) {
+  async createNormalSavingBankAccount(id: string) {
     return await this.create({
       accountId: id,
       amount: 0,
@@ -188,8 +188,6 @@ export class BankService {
     return newTransaction.save();
   };
 
-  outWithDraw() {}
-  inDeposit() {}
   async inWithDraw(inWithDraw: InWithDrawDto) {
     const bank = await this.bankRepo.findOne({
       accountId: inWithDraw.userId,
@@ -238,7 +236,7 @@ export class BankService {
       throw new InternalServerErrorException(error);
     }
   }
-  createLoanBank(id: Types.ObjectId): Promise<Bank> {
+  createLoanBank(id: string): Promise<Bank> {
     return this.create({
       accountId: id,
       amount: 0,
@@ -247,11 +245,11 @@ export class BankService {
     });
   }
 
-  getUserTransactions(id: Types.ObjectId): Promise<Transaction[]> {
+  getUserTransactions(id: string): Promise<Transaction[]> {
     return this.transactionRepo.find({ userId: id }).exec();
   }
 
-  findEscrow(id: Types.ObjectId): Promise<Bank> {
+  findEscrow(id: string): Promise<Bank> {
     return this.bankRepo
       .findOne({ accountId: id, type: bankType.ESCROW })
       .exec();
@@ -297,17 +295,20 @@ export class BankService {
 
     return bank;
   }
-  async transferLoanToEscrow(id: Types.ObjectId): Promise<Bank> {
+  async transferLoanToEscrow(id: string): Promise<Bank> {
     //update loanbank id
     //use the value before update--> new:false
-    const loanBank = await this.bankRepo.findByIdAndUpdate(id, {
-      $set: {
-        amount: 0,
+    const loanBank = await this.bankRepo.findByIdAndUpdate(
+      new Types.ObjectId(id),
+      {
+        $set: {
+          amount: 0,
+        },
       },
-    });
+    );
     //update bankEscrow
-    const escrowBank = await this.bankRepo.findByIdAndUpdate(
-      loanBank.accountId,
+    const escrowBank = await this.bankRepo.findOneAndUpdate(
+      { accountId: loanBank.accountId, type: bankType.ESCROW },
       {
         $inc: {
           amount: loanBank.amount,
@@ -455,7 +456,7 @@ export class BankService {
     if (callBack.Body.stkCallback.ResultCode == 0) {
       const data: {
         amount: number;
-        userId: Types.ObjectId;
+        userId: string;
         phoneNumber: number;
       } = await this.cacheService.get(
         callBack.Body.stkCallback.CheckoutRequestID,
@@ -464,7 +465,7 @@ export class BankService {
       this.outDeposit({
         ...data,
         amount: data.amount * 1000,
-        userId: new Types.ObjectId(data.userId),
+        userId: data.userId,
       });
       await this.cacheService.del(callBack.Body.stkCallback.CheckoutRequestID);
       return;
@@ -472,4 +473,18 @@ export class BankService {
       await this.cacheService.del(callBack.Body.stkCallback.CheckoutRequestID);
     }
   };
+  async transferSavingsToEscrow(id: string): Promise<string> {
+    const savingsBank = await this.bankRepo.findById(new Types.ObjectId(id));
+    const escrowBank = await this.bankRepo.findOneAndUpdate(
+      { accountId: savingsBank.accountId, type: bankType.ESCROW },
+      {
+        $inc: {
+          amount: savingsBank.amount,
+        },
+      },
+    );
+
+    await savingsBank.delete();
+    return 'success';
+  }
 }

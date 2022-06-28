@@ -1,9 +1,8 @@
-import  { Types } from 'mongoose';
 
 export class InWithDrawDto {
-  userId: Types.ObjectId;
+  userId: string;
   amount: number;
-  loanId: Types.ObjectId | null;
-  savingsId: Types.ObjectId | null;
-  bankId?: Types.ObjectId ;
+  loanId: string | null;
+  savingsId: string | null;
+  bankId?: string ;
 }

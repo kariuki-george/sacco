@@ -1,7 +1,7 @@
 import { LoansService } from './loans.service';
 import { Args, Mutation, Resolver, Query, Int } from '@nestjs/graphql';
 import { CreateGuarantorDto } from './dto/createGuarantor.dto';
-import { Types } from 'mongoose';
+
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AdminAuthGuard } from 'src/auth/guards/admin-guard';
@@ -26,7 +26,7 @@ export class LoansResolver {
   ): Promise<CreateGuarantorResponse> {
     return this.loansService.createGuarantor({
       ...createGuarantor,
-      userId: new Types.ObjectId(createGuarantor.userId),
+      userId: createGuarantor.userId,
     });
   }
   @UseGuards(AdminAuthGuard)
@@ -43,7 +43,7 @@ export class LoansResolver {
   }
   @Query(() => LoanType)
   getLoanTypeId(@Args('loanTypeId') id: string): Promise<LoanType> {
-    return this.loansService.getLoanTypeById(new Types.ObjectId(id));
+    return this.loansService.getLoanTypeById(id);
   }
   @UseGuards(JwtAuthGuard)
   @Mutation(() => CreateLoanResponse, {
@@ -55,8 +55,8 @@ export class LoansResolver {
   ): Promise<CreateLoanResponse> {
     return this.loansService.initializeLoan({
       ...createLoan,
-      loanTypeId: new Types.ObjectId(createLoan.loanTypeId),
-      userId: new Types.ObjectId(createLoan.userId),
+      loanTypeId: createLoan.loanTypeId,
+      userId: createLoan.userId,
     });
   }
 
@@ -70,7 +70,7 @@ export class LoansResolver {
   ): Promise<CreateLoanResponse> {
     return this.loansService.postInitializingLoan({
       ...validateGuarantor,
-      loanId: new Types.ObjectId(validateGuarantor.loanId),
+      loanId: validateGuarantor.loanId,
     });
   }
   @UseGuards(JwtAuthGuard)
@@ -78,25 +78,25 @@ export class LoansResolver {
   getAllLoansByUserId(
     @Args('userId') id: string,
   ): Promise<GetAllLoansResponse> {
-    return this.loansService.getAllLoansByUserId(new Types.ObjectId(id));
+    return this.loansService.getAllLoansByUserId(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Mutation(() => String)
   transferLoanToEscrow(@Args('loanId') id: string): Promise<string> {
-    return this.loansService.transferLoanToEscrow(new Types.ObjectId(id));
+    return this.loansService.transferLoanToEscrow(id);
   }
   @UseGuards(JwtAuthGuard)
   @Mutation(() => Loan)
   payloan(@Args('payloan') payloan: PayLoanDto): Promise<Loan> {
     return this.loansService.payLoan({
       ...payloan,
-      loanId: new Types.ObjectId(payloan.loanId),
+      loanId: payloan.loanId,
     });
   }
 
   //@UseGuards(JwtAuthGuard)
-  @Query(() => Int)
+  @Query(() => Int, {nullable:true} )
   getTotalLoans(): Promise<number> {
     return this.loansService.getAllLoans();
   }

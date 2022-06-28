@@ -1,8 +1,8 @@
-import { Types } from 'mongoose';
+
 
 export class TransferFundsDto {
-  loanBankId: Types.ObjectId;
-  guarantorUserId?: Types.ObjectId;
-  userId?: Types.ObjectId;
+  loanBankId: string;
+  guarantorUserId?: string;
+  userId?: string;
   amount: number;
 }

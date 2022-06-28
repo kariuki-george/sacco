@@ -1,6 +1,6 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+
 
 @ObjectType()
 @Schema({ timestamps: true })
@@ -13,10 +13,10 @@ export class Guarantor {
   token: string;
   @Field(() => ID)
   @Prop()
-  userId: Types.ObjectId;
+  userId: string;
   @Field(() => ID)
   @Prop()
-  loanId?: Types.ObjectId;
+  loanId?: string;
 }
 
 export type GuarantorDocument = Guarantor & Document;
