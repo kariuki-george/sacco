@@ -11,10 +11,10 @@ import { createUserResponse } from './res/createUser.res';
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
-  @Mutation(() => User)
+  @Mutation(() => createUserResponse)
   createUser(
     @Args('createUserDto') createUserDto: CreateUserDto,
-  ): Promise<User> {
+  ): Promise<createUserResponse> {
     return this.usersService.create(createUserDto);
   }
   @Mutation(() => User)

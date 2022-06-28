@@ -10,6 +10,16 @@ type User {
   phoneNumber: String!
 }
 
+type Errorr {
+  error: String!
+  message: String!
+}
+
+type createUserResponse {
+  user: User
+  errors: Errorr
+}
+
 type Savings {
   _id: ID!
   name: String!
@@ -20,11 +30,6 @@ type Savings {
   userId: ID!
   bankId: ID!
   amountLoanable: Float!
-}
-
-type Errorr {
-  error: String!
-  message: String!
 }
 
 type TransferSavingsToEscrowResponse {
@@ -129,11 +134,11 @@ type Query {
   getAllLoanTypes: [LoanType!]!
   getLoanTypeId(loanTypeId: String!): LoanType!
   getAllLoansByUserId(userId: String!): GetAllLoansResponse!
-  getTotalLoans: Int
+  getTotalLoans: Float
 }
 
 type Mutation {
-  createUser(createUserDto: CreateUserDto!): User!
+  createUser(createUserDto: CreateUserDto!): createUserResponse!
   createAdmin(createAdminDto: CreateUserDto!): User!
   saveToCustomUserAccount(depositIntoSavingAccountDto: DepositIntoSavingAccountDto!): Savings!
   saveToSaccoAccount(depositIntoSavingAccountDto: DepositIntoSavingAccountDto!): Savings!
