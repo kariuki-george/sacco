@@ -45,6 +45,8 @@ export class Transaction {
   @Field(() => ID)
   @Prop()
   userId: string;
+  @Field(() => ID)
+  _id: string;
 }
 
 export type TransactionDocument = Transaction & Document;
