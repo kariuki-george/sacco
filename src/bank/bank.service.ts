@@ -11,6 +11,11 @@ import axios from 'axios';
 import { Cache } from 'cache-manager';
 
 import { Model, Types } from 'mongoose';
+import * as path from 'path';
+import * as fs from 'fs';
+import crypto from 'node:crypto';
+
+import * as CryptoJS from 'crypto-js';
 import { PayLoanDto } from 'src/loans/dto/payLoan.dto';
 import { TransferFundsDto } from 'src/loans/dto/transferFunds.dto';
 import { DepositIntoSavingAccountDto } from 'src/savings/dto/deposit-saving.dto';
@@ -371,7 +376,7 @@ export class BankService {
     const body = {
       BusinessShortCode: 174379,
       Password: Buffer.from(
-        `${this.configService.get('PARTYB')}${this.configService.get(
+        `${this.configService.get('TILL')}${this.configService.get(
           'PASSKEY',
         )}${Timestamp}`,
       ).toString('base64'),
@@ -379,9 +384,10 @@ export class BankService {
       TransactionType: 'CustomerPayBillOnline',
       Amount: outDeposit.amount,
       PartyA: outDeposit.phoneNumber,
-      PartyB: this.configService.get('PARTYB'),
+      PartyB: this.configService.get('TILL'),
       PhoneNumber: Number(outDeposit.phoneNumber),
-      CallBackURL: this.configService.get('URL') + '/bank/mpesa/callback',
+      CallBackURL:
+        this.configService.get('CALLBACK_URL') + '/bank/mpesa/callback',
       AccountReference: 'esacco',
       TransactionDesc: 'deposit',
       Timestamp,
@@ -486,5 +492,94 @@ export class BankService {
 
     await savingsBank.delete();
     return 'success';
+  }
+  async mpesaWithdraw(outWithdraw) {
+    const escrowBank = await this.findEscrow(outWithdraw.userId);
+
+    if (outWithdraw.amount > escrowBank.amount) {
+      throw new BadRequestException('cannot withdraw more than escrow');
+    }
+
+    const pass = function (toEncrypt, relativeOrAbsolutePathToPublicKey) {
+      let absolutePath = path.resolve(relativeOrAbsolutePathToPublicKey);
+
+      let publicKey = fs.readFileSync(absolutePath, 'utf8');
+
+      var encrypted = CryptoJS.HmacSHA256(toEncrypt, publicKey);
+
+      return encrypted.toString(CryptoJS.enc.Base64);
+      // let buffer = Buffer.from(toEncrypt, 'base64');
+
+      // let encrypted = crypto.publicEncrypt(publicKey, buffer);
+      // return encrypted.toString('base64');
+    };
+
+    const body = {
+      SecurityCredential:
+        'Q9KEnwDV/V1LmUrZHNunN40AwAw30jHMfpdTACiV9j+JofwZu0G5qrcPzxul+6nocE++U6ghFEL0E/5z/JNTWZ/pD9oAxCxOik/98IYPp+elSMMO/c/370Joh2XwkYCO5Za9dytVmlapmha5JzanJrqtFX8Vez5nDBC4LEjmgwa/+5MvL+WEBzjV4I6GNeP6hz23J+H43TjTTboeyg8JluL9myaGz68dWM7dCyd5/1QY0BqEiQSQF/W6UrXbOcK9Ac65V0+1+ptQJvreQznAosCjyUjACj35e890toDeq37RFeinM3++VFJqeD5bf5mx5FoJI/Ps0MlydwEeMo/InA==',
+
+      CommandID: 'BusinessPayment',
+      Amount: outWithdraw.amount,
+      PartyA: this.configService.get('TILL'),
+      PartyB: outWithdraw.phoneNumber,
+
+      QueueTimeOutURL:
+        this.configService.get('CALLBACK_URL') + '/bank/mpesa/withdraw/queue',
+      ResultURL:
+        this.configService.get('CALLBACK_URL') + '/bank/mpesa/withdraw/result',
+      Remarks: 'success',
+      Occassion: '',
+      InitiatorName: 'esacco',
+    };
+
+    const { data } = await this.getAccessToken();
+    const { access_token } = data;
+
+    try {
+      const response = await axios.post(this.configService.get('B2C'), body, {
+        headers: {
+          Authorization: 'Bearer ' + access_token,
+        },
+      });
+
+      const ConversationId = response.data.ConversationID;
+      await this.cacheService.set(
+        ConversationId,
+        {
+          userId: outWithdraw.userId,
+          amount: outWithdraw.amount,
+          phoneNumber: outWithdraw.phoneNumber,
+        },
+        {
+          ttl: 1000 * 60 * 60,
+        },
+      );
+      return response.data;
+    } catch (error) {
+      throw new BadRequestException(error.message || error.response.message);
+    }
+  }
+  async mpesaWithdrawUpdateEscrow(id) {
+    const mpesaTransaction: {
+      amount: number;
+      userId: string;
+      phoneNumber: number;
+    } = await this.cacheService.get(id);
+    if (mpesaTransaction) {
+      // await this.bankRepo.findOneAndUpdate(
+      //   { accountId: mpesaTransaction.userId, type: bankType.ESCROW },
+      //   {
+      //     $inc: {
+      //       amount: -mpesaTransaction.amount,
+      //     },
+      //   },
+      // );
+      this.outDeposit({
+        phoneNumber: mpesaTransaction.phoneNumber,
+        amount: -mpesaTransaction.amount,
+        userId: mpesaTransaction.userId,
+      });
+      await this.cacheService.del(id);
+    }
   }
 }

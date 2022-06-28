@@ -49,6 +49,7 @@ type Transaction {
   fromId: ID!
   status: String!
   userId: ID!
+  _id: ID!
 }
 
 type Guarantor {
